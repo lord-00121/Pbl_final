@@ -13,7 +13,7 @@ $stmt = $db->prepare("
     SELECT tr.*, t.name as tournament_name, t.sport_type, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
     FROM tournament_registrations tr
     JOIN tournaments t ON tr.tournament_id = t.id
-    JOIN users u ON tr.user_id = u.id
+    JOIN users u ON tr.customer_id = u.id
     WHERE t.seller_id = ?
     ORDER BY tr.registration_date DESC
 ");
