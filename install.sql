@@ -177,7 +177,7 @@ CREATE TABLE `reviews` (
 CREATE TABLE `revenue_log` (
   `id`          INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   `seller_id`   INT UNSIGNED  NOT NULL,
-  `booking_id`  INT UNSIGNED  NOT NULL,
+  `booking_id`  INT UNSIGNED  NULL,
   `amount`      DECIMAL(10,2) NOT NULL,
   `recorded_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
