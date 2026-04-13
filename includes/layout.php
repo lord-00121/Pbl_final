@@ -76,6 +76,7 @@ function layoutSidebar(string $role = 'customer', string $active = ''): void {
             ['l' => 'Browse Venues', 'h' => "$url/dashboard/customer/browse.php", 'i' => 'search'],
             ['l' => 'Browse Tournaments', 'h' => "$url/dashboard/customer/browse_tournaments.php", 'i' => 'emoji_events'],
             ['l' => 'My Bookings', 'h' => "$url/dashboard/customer/past_bookings.php", 'i' => 'history'],
+            ['l' => 'Logout', 'h' => "$url/logout.php", 'i' => 'logout'],
         ];
     } elseif ($role === 'seller') {
         $items = [
@@ -85,6 +86,7 @@ function layoutSidebar(string $role = 'customer', string $active = ''): void {
             ['l' => 'Tournaments', 'h' => "$url/dashboard/seller/tournaments.php", 'i' => 'emoji_events'],
             ['l' => 'Registrations', 'h' => "$url/dashboard/seller/registrations.php", 'i' => 'people'],
             ['l' => 'Revenue', 'h' => "$url/dashboard/seller/revenue.php", 'i' => 'bar_chart'],
+            ['l' => 'Logout', 'h' => "$url/logout.php", 'i' => 'logout'],
         ];
     } else {
         $items = [
@@ -93,6 +95,7 @@ function layoutSidebar(string $role = 'customer', string $active = ''): void {
             ['l' => 'Venues', 'h' => "$url/dashboard/admin/venues.php", 'i' => 'location_city'],
             ['l' => 'Tournaments', 'h' => "$url/dashboard/admin/tournaments.php", 'i' => 'emoji_events'],
             ['l' => 'Bookings', 'h' => "$url/dashboard/admin/bookings.php", 'i' => 'event_available'],
+            ['l' => 'Logout', 'h' => "$url/logout.php", 'i' => 'logout'],
         ];
     }
 
