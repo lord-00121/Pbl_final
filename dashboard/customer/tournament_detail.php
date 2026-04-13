@@ -78,11 +78,11 @@ layoutSidebar($user['role'], 'Browse Tournaments');
         <?php endif; ?>
       </div>
       <?php if (count($photos) > 1): ?>
-      <button class="carousel-control-prev" type="button" data-mdb-target="#eventCarousel" data-mdb-slide="prev" style="opacity:1;">
-        <span class="material-icons bg-dark text-white rounded-circle p-2 shadow-sm" aria-hidden="true">chevron_left</span>
+      <button class="carousel-control-prev" type="button" data-mdb-target="#eventCarousel" data-mdb-slide="prev" style="opacity:1; z-index:100;">
+        <span class="material-icons bg-dark text-white rounded-circle p-2 shadow-sm" style="pointer-events:none;" aria-hidden="true">chevron_left</span>
       </button>
-      <button class="carousel-control-next" type="button" data-mdb-target="#eventCarousel" data-mdb-slide="next" style="opacity:1;">
-        <span class="material-icons bg-dark text-white rounded-circle p-2 shadow-sm" aria-hidden="true">chevron_right</span>
+      <button class="carousel-control-next" type="button" data-mdb-target="#eventCarousel" data-mdb-slide="next" style="opacity:1; z-index:100;">
+        <span class="material-icons bg-dark text-white rounded-circle p-2 shadow-sm" style="pointer-events:none;" aria-hidden="true">chevron_right</span>
       </button>
       <?php endif; ?>
     </div>
