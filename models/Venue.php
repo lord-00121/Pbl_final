@@ -64,6 +64,20 @@ class Venue {
         return $stmt->fetchAll();
     }
 
+    public function deletePhoto(int $photoId, int $sellerId): bool {
+        // First verify ownership
+        $stmt = $this->db->prepare("
+            SELECT vp.id FROM venue_photos vp 
+            JOIN venues v ON v.id = vp.venue_id 
+            WHERE vp.id = ? AND v.seller_id = ?
+        ");
+        $stmt->execute([$photoId, $sellerId]);
+        if (!$stmt->fetch()) return false;
+
+        $stmt = $this->db->prepare("DELETE FROM venue_photos WHERE id = ?");
+        return $stmt->execute([$photoId]);
+    }
+
     public function getBySeller(int $sellerId): array {
         $stmt = $this->db->prepare("SELECT * FROM venues WHERE seller_id = ? AND is_deleted = 0 ORDER BY created_at DESC");
         $stmt->execute([$sellerId]);

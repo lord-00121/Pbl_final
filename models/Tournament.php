@@ -145,18 +145,30 @@ class Tournament {
     public function deletePhotos(int $tournamentId): void {
         $this->db->prepare("DELETE FROM tournament_photos WHERE tournament_id = ?")->execute([$tournamentId]);
     }
-    public function getPhotos(int $tournamentId): array {
-        $stmt = $this->db->prepare("SELECT * FROM tournament_photos WHERE tournament_id = ? ORDER BY sort_order");
-        $stmt->execute([$tournamentId]);
+    public function getPhotos(int $id): array {
+        $stmt = $this->db->prepare("SELECT * FROM tournament_photos WHERE tournament_id = ? ORDER BY sort_order ASC");
+        $stmt->execute([$id]);
         return $stmt->fetchAll();
+    }
+
+    public function deletePhoto(int $photoId, int $sellerId): bool {
+        // First verify ownership
+        $stmt = $this->db->prepare("
+            SELECT tp.id FROM tournament_photos tp 
+            JOIN tournaments t ON t.id = tp.tournament_id 
+            WHERE tp.id = ? AND t.seller_id = ?
+        ");
+        $stmt->execute([$photoId, $sellerId]);
+        if (!$stmt->fetch()) return false;
+
+        $stmt = $this->db->prepare("DELETE FROM tournament_photos WHERE id = ?");
+        return $stmt->execute([$photoId]);
     }
 
     public function getUniqueCities(): array {
         $stmt = $this->db->query("SELECT DISTINCT city FROM tournaments WHERE city IS NOT NULL AND city != '' AND is_deleted = 0 ORDER BY city ASC");
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
-}
-
 
 
 

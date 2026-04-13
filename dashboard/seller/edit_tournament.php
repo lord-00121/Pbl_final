@@ -15,6 +15,14 @@ if (!$tournament || $tournament['seller_id'] != $user['id']) {
     exit;
 }
 
+// Handle single photo deletion
+if (isset($_GET['delete_photo'])) {
+    $photoId = (int)$_GET['delete_photo'];
+    $tournamentModel->deletePhoto($photoId, $user['id']);
+    header('Location: ' . BASE_URL . '/dashboard/seller/edit_tournament.php?id=' . $id . '&deleted=1');
+    exit;
+}
+
 $existingPhotos = $tournamentModel->getPhotos($id);
 $error = '';
 $sports = ['Cricket','Football','Badminton','Basketball','Tennis','Swimming','Others'];
@@ -38,6 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'start_date' => $_POST['start_date'] ?? '',
         'end_date' => $_POST['end_date'] ?? '',
         'registration_deadline' => !empty($_POST['registration_deadline']) ? $_POST['registration_deadline'] : null,
+        'registration_fee' => (float)($_POST['registration_fee'] ?? 0),
+        'team_size' => (int)($_POST['team_size'] ?? 1),
     ];
 
     if (!$data['name'] || !$data['sport_type'] || !$data['location'] || !$data['start_date'] || !$data['end_date']) {
@@ -175,9 +185,17 @@ layoutSidebar('seller', 'Tournaments');
       <?php if (!empty($existingPhotos)): ?>
       <div class="col-12 border-top pt-3 mt-3">
         <label class="form-label fw-600 small">Current Promotional Photos</label>
-        <div class="d-flex flex-wrap gap-2">
+        <div class="d-flex flex-wrap gap-3">
           <?php foreach ($existingPhotos as $p): ?>
-            <img src="<?php echo imgUrl($p['photo_url']); ?>" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;" alt="Photo">
+            <div class="position-relative">
+              <img src="<?php echo imgUrl($p['photo_url']); ?>" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;" alt="Tournament photo">
+              <a href="?id=<?php echo $id; ?>&delete_photo=<?php echo $p['id']; ?>" 
+                 class="btn btn-danger btn-floating btn-sm position-absolute top-0 end-0 m-1 shadow-sm" 
+                 onclick="return confirm('Delete this photo?')"
+                 title="Delete this photo">
+                <span class="material-icons" style="font-size:16px; line-height:30px;">close</span>
+              </a>
+            </div>
           <?php endforeach; ?>
         </div>
       </div>

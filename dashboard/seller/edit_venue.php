@@ -15,6 +15,14 @@ if (!$venue || $venue['seller_id'] != $user['id']) {
     exit;
 }
 
+// Handle single photo deletion
+if (isset($_GET['delete_photo'])) {
+    $photoId = (int)$_GET['delete_photo'];
+    $venueModel->deletePhoto($photoId, $user['id']);
+    header('Location: ' . BASE_URL . '/dashboard/seller/edit_venue.php?id=' . $id . '&deleted=1');
+    exit;
+}
+
 $existingPhotos = $venueModel->getPhotos($id);
 $error = '';
 $sports = ['Cricket','Football','Badminton','Basketball','Tennis','Swimming','Others'];
@@ -152,9 +160,17 @@ layoutSidebar('seller', 'My Venues');
       <?php if (!empty($existingPhotos)): ?>
       <div class="col-12 border-top pt-3 mt-3">
         <label class="form-label fw-600 small">Current Photos</label>
-        <div class="d-flex flex-wrap gap-2">
+        <div class="d-flex flex-wrap gap-3">
           <?php foreach ($existingPhotos as $p): ?>
-            <img src="<?php echo imgUrl($p['photo_url']); ?>" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;" alt="Venue photo">
+            <div class="position-relative group">
+              <img src="<?php echo imgUrl($p['photo_url']); ?>" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;" alt="Venue photo">
+              <a href="?id=<?php echo $id; ?>&delete_photo=<?php echo $p['id']; ?>" 
+                 class="btn btn-danger btn-floating btn-sm position-absolute top-0 end-0 m-1 shadow-sm" 
+                 onclick="return confirm('Delete this photo?')"
+                 title="Delete this photo">
+                <span class="material-icons" style="font-size:16px; line-height:30px;">close</span>
+              </a>
+            </div>
           <?php endforeach; ?>
         </div>
       </div>
