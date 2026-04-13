@@ -98,11 +98,11 @@ layoutSidebar($user['role'], 'Browse Venues');
         <?php endif; ?>
       </div>
       <?php if (count($photos) > 1): ?>
-      <button class="carousel-control-prev" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: invert(1) grayscale(100%) brightness(0);"></span>
+      <button class="carousel-control-prev" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="prev" style="z-index:5;">
+        <span class="carousel-control-prev-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="width:40px; height:40px;"></span>
       </button>
-      <button class="carousel-control-next" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true" style="filter: invert(1) grayscale(100%) brightness(0);"></span>
+      <button class="carousel-control-next" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="next" style="z-index:5;">
+        <span class="carousel-control-next-icon p-3 bg-dark rounded-circle" aria-hidden="true" style="width:40px; height:40px;"></span>
       </button>
       <?php endif; ?>
     </div>
@@ -236,17 +236,25 @@ layoutSidebar($user['role'], 'Browse Venues');
 .slot-chip { flex: 1 1 calc(50% - 0.5rem); padding: 8px; text-align: center; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.85rem; font-weight: 600; background: white; }
 .slot-chip:not(.booked):hover { border-color: var(--primary); background: #f0fdf4; color: var(--primary); transform: translateY(-2px); }
 .slot-chip.selected { border-color: var(--primary); background: var(--primary); color: white; border-width: 2px; }
-.slot-chip.booked { opacity: 0.4; background: #e9ecef; cursor: not-allowed; text-decoration: line-through; border-style: dotted; }
-
-/* Lightbox Style */
-#imageZoomModal { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); cursor:zoom-out; align-items:center; justify-content:center; }
 #zoomImg { max-width:90%; max-height:90%; border-radius:8px; box-shadow:0 0 30px rgba(0,0,0,0.5); }
+.slot-chip.booked { opacity: 0.5; background: #f1f3f5 !important; cursor: not-allowed; text-decoration: line-through; border-style: dotted !important; color: #adb5bd !important; }
 </style>
 
 <!-- Image Zoom Modal -->
 <div id="imageZoomModal" onclick="this.style.display='none'"><img id="zoomImg" src=""></div>
 
 <script>
+// Lightbox initialization function
+function initLightbox() {
+    document.querySelectorAll('.carousel-item img').forEach(img => {
+        img.style.cursor = 'zoom-in';
+        img.onclick = () => {
+            document.getElementById('zoomImg').src = img.src;
+            document.getElementById('imageZoomModal').style.display = 'flex';
+        };
+    });
+}
+document.addEventListener('DOMContentLoaded', initLightbox);
 const venueId = <?php echo $id; ?>;
 const opStart = '<?php echo $venue['operating_hours_start']; ?>';
 const opEnd = '<?php echo $venue['operating_hours_end']; ?>';
@@ -372,15 +380,6 @@ function renderSlots() {
   document.getElementById('hiddenSlotStart').value = '';
   document.getElementById('hiddenSlotEnd').value = '';
 
-  // Lightbox trigger for images
-  document.querySelectorAll('.carousel-item img').forEach(img => {
-      img.style.cursor = 'zoom-in';
-      img.onclick = () => {
-          document.getElementById('zoomImg').src = img.src;
-          document.getElementById('imageZoomModal').style.display = 'flex';
-      };
-  });
-
   const durationSelect = document.getElementById('slotDuration');
   const durationHrs = parseFloat(durationSelect.value);
   const durationMins = durationHrs * 60;
@@ -407,8 +406,11 @@ function renderSlots() {
     for(let b of currentBooked) {
         let bStart = timeStrToInt(b.slot_start);
         let bEnd = timeStrToInt(b.slot_end);
-        // Overlap condition: start < bEnd AND end > bStart
-        if(startMins < bEnd && curEndMins > bStart) {
+        
+        // Strict overlap condition
+        // A slot collides if it STOPS after an existing booking STARTS, 
+        // AND it STARTS before that existing booking STOPS.
+        if (startMins < bEnd && curEndMins > bStart) {
             isBooked = true;
             break;
         }
