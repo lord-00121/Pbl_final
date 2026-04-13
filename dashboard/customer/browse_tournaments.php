@@ -111,7 +111,7 @@ layoutSidebar($user['role'], 'Browse Tournaments');
     <?php else: foreach ($filtered as $t): 
         // Get the first photo or placeholder
         $photos = $model->getPhotos($t['id']);
-        $imgSrc = !empty($photos) ? BASE_URL . '/' . $photos[0]['photo_url'] : 'https://placehold.co/600x400/eeeeee/aaaaaa?text=Event';
+        $imgSrc = !empty($photos) ? imgUrl($photos[0]['photo_url']) : 'https://placehold.co/600x400/eeeeee/aaaaaa?text=Event';
     ?>
     <div class="col-md-4">
         <a href="<?php echo BASE_URL; ?>/dashboard/customer/tournament_detail.php?id=<?php echo $t['id']; ?>" class="text-decoration-none text-dark">

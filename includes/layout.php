@@ -2,6 +2,15 @@
 // includes/layout.php — Shared UI components
 require_once __DIR__ . '/../config/app.php';
 
+/**
+ * Returns the correct URL for an image, handling both local and remote (Cloudinary) paths.
+ */
+function imgUrl($path) {
+    if (!$path) return '';
+    if (strpos($path, 'http') === 0) return $path;
+    return BASE_URL . '/' . ltrim($path, '/');
+}
+
 function layoutHead(string $title = 'Sportify'): void {
     $url = BASE_URL;
     echo <<<HTML

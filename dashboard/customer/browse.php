@@ -116,7 +116,7 @@ layoutSidebar('customer', 'Browse Venues');
         </div>
     <?php else: ?>
         <?php foreach ($venues as $v): 
-            $sportUrl = ($v['primary_photo'] ?? '') ? BASE_URL . '/' . $v['primary_photo'] : '';
+            $sportUrl = imgUrl($v['primary_photo'] ?? '');
             $stars = str_repeat('★', round($v['rating_avg'])) . str_repeat('☆', 5 - round($v['rating_avg']));
         ?>
             <div class="col-lg-4 col-md-6">

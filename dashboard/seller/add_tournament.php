@@ -41,17 +41,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $tId = $tournamentModel->create($data);
         if (!empty($_FILES['photos']['name'][0])) {
-            $uploadDir = __DIR__ . '/../../assets/uploads/venues/';
-            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+            require_once __DIR__ . '/../../includes/cloudinary_helper.php';
             $files = $_FILES['photos'];
+            $count = 0;
             for ($i = 0; $i < min(count($files['name']), 10); $i++) {
                 if ($files['error'][$i] !== UPLOAD_ERR_OK) continue;
-                $ext = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
-                if (!in_array($ext, ['jpg','jpeg','png'])) continue;
-                if ($files['size'][$i] > 5 * 1024 * 1024) continue;
-                $fname = 'tournament_' . $tId . '_' . time() . '_' . $i . '.' . $ext;
-                move_uploaded_file($files['tmp_name'][$i], $uploadDir . $fname);
-                $tournamentModel->addPhoto($tId, 'assets/uploads/venues/' . $fname, $i);
+                
+                $fileData = [
+                    'tmp_name' => $files['tmp_name'][$i],
+                    'name' => $files['name'][$i],
+                    'size' => $files['size'][$i],
+                    'error' => $files['error'][$i]
+                ];
+
+                $secureUrl = uploadToCloudinary($fileData, 'sportify/tournaments');
+                if ($secureUrl) {
+                    $tournamentModel->addPhoto($tId, $secureUrl, $count++);
+                }
             }
         }
         header('Location: ' . BASE_URL . '/dashboard/seller/tournaments.php?msg=saved');

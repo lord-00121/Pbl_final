@@ -85,7 +85,7 @@ layoutSidebar($user['role'], 'Browse Venues');
       <div class="carousel-inner">
         <?php if (!empty($photos)): foreach ($photos as $i => $p): ?>
         <div class="carousel-item <?php echo $i === 0 ? 'active' : ''; ?>">
-          <img src="<?php echo BASE_URL . '/' . h($p['photo_url']); ?>" class="d-block w-100" style="object-fit:cover; height:400px; background:#f0f0f0;" alt="Venue photo">
+          <img src="<?php echo imgUrl($p['photo_url']); ?>" class="d-block w-100" style="object-fit:cover; height:400px; background:#f0f0f0;" alt="Venue photo">
         </div>
         <?php endforeach; else: ?>
         <div class="d-flex align-items-center justify-content-center bg-light" style="height:400px;">
