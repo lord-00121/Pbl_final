@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // api/slots.php â€” Returns booked slots for a venue on a date
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../models/Booking.php';
@@ -16,10 +16,13 @@ if (strtotime($date) < strtotime(date('Y-m-d'))) {
     echo json_encode(['booked' => [], 'note' => 'Past date']); exit;
 }
 
-$bookingModel = new Booking();
-$booked = $bookingModel->getBookedSlots($venueId, $date);
-
-echo json_encode(['booked' =>  $booked]);
+try {
+    $bookingModel = new Booking();
+    $booked = $bookingModel->getBookedSlots($venueId, $date);
+    echo json_encode(['booked' => $booked]);
+} catch (Exception $e) {
+    echo json_encode(['error' => 'DB Error: ' . $e->getMessage()]);
+}
 
 
 

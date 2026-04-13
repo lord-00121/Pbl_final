@@ -303,6 +303,9 @@ dateInput.addEventListener('change', async function() {
   }
 });
 
+// Auto-trigger if date is pre-filled
+if(dateInput.value) dateInput.dispatchEvent(new Event('change'));
+
 function renderDurations() {
     const grid = document.getElementById('durationGrid');
     grid.innerHTML = '';
