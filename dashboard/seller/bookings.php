@@ -13,7 +13,7 @@ $stmt = $db->prepare("
     SELECT b.*, v.name as venue_name, v.sport_type, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
     FROM bookings b
     JOIN venues v ON b.venue_id = v.id
-    JOIN users u ON b.user_id = u.id
+    JOIN users u ON b.customer_id = u.id
     WHERE v.seller_id = ?
     ORDER BY b.slot_date DESC, b.slot_start DESC
 ");

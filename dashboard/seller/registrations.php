@@ -15,7 +15,7 @@ $stmt = $db->prepare("
     JOIN tournaments t ON tr.tournament_id = t.id
     JOIN users u ON tr.customer_id = u.id
     WHERE t.seller_id = ?
-    ORDER BY tr.registration_date DESC
+    ORDER BY tr.created_at DESC
 ");
 $stmt->execute([$user['id']]);
 $registrations = $stmt->fetchAll();
@@ -56,7 +56,7 @@ layoutSidebar('seller', 'Registrations');
                             </div>
                             <div class="col-md-6 ps-md-3">
                                 <small class="text-muted d-block text-uppercase x-small fw-700 mb-1">Registration Date</small>
-                                <div class="small fw-600"><?php echo date('d M Y, h:i A', strtotime($r['registration_date'])); ?></div>
+                                <div class="small fw-600"><?php echo date('d M Y, h:i A', strtotime($r['created_at'])); ?></div>
                                 <span class="badge bg-success x-small mt-1">Paid / Confirmed</span>
                             </div>
                         </div>
