@@ -171,14 +171,12 @@ layoutSidebar($user['role'], 'Browse Venues');
               <input type="date" id="slotDate" name="slot_date" class="form-control" min="<?php echo date('Y-m-d'); ?>" required>
             </div>
             <div class="mb-4">
-              <label class="form-label small fw-600">Duration Needed</label>
-              <select id="slotDuration" class="form-select">
-                  <option value="1.0">1 Hour</option>
-                  <option value="1.5">1.5 Hours</option>
-                  <option value="2.0">2 Hours</option>
-                  <option value="2.5">2.5 Hours</option>
-                  <option value="3.0">3 Hours</option>
-              </select>
+              <label class="form-label small fw-600">2. How long do you want to play?</label>
+              <div id="durationGrid" class="d-flex flex-wrap gap-2">
+                  <!-- Generated dynamically -->
+                  <p class="text-muted small">Select a date first...</p>
+              </div>
+              <input type="hidden" id="slotDuration" value="">
             </div>
 
             <div class="mb-4" id="slotsWrapper" style="display:none">
@@ -276,19 +274,70 @@ const durationSelect = document.getElementById('slotDuration');
 
 dateInput.addEventListener('change', async function() {
   const date = this.value;
+  const grid = document.getElementById('durationGrid');
+  grid.innerHTML = '<div class="spinner-border spinner-border-sm text-primary"></div> Checking availability...';
+  
   try {
       const res = await fetch(`<?php echo BASE_URL; ?>/api/slots.php?venue_id=${venueId}&date=${date}`);
       const data = await res.json();
       currentBooked = data.booked || [];
-      durationSelect.disabled = false;
-      renderSlots();
-  } catch(e) { console.error('Failed to fetch slots.'); }
+      renderDurations();
+  } catch(e) { 
+      console.error('Failed to fetch slots.'); 
+      grid.innerHTML = '<span class="text-danger small">Error loading availability.</span>';
+  }
 });
 
-durationSelect.addEventListener('change', () => {
-    // Re-render when duration changes
-    if(dateInput.value) renderSlots();
-});
+function renderDurations() {
+    const grid = document.getElementById('durationGrid');
+    grid.innerHTML = '';
+    
+    const startNum = timeStrToInt(opStart);
+    const endNum = timeStrToInt(opEnd);
+    
+    // Sort bookings by start time
+    let bookings = currentBooked.map(b => ({
+        s: timeStrToInt(b.slot_start),
+        e: timeStrToInt(b.slot_end)
+    })).sort((a,b) => a.s - b.s);
+    
+    // Find consecutive gaps
+    let gaps = [];
+    let lastE = startNum;
+    for(let b of bookings) {
+        if(b.s > lastE) gaps.push(b.s - lastE);
+        lastE = Math.max(lastE, b.e);
+    }
+    if(endNum > lastE) gaps.push(endNum - lastE);
+    
+    const maxGapMins = gaps.length > 0 ? Math.max(...gaps) : 0;
+
+    if (maxGapMins < 60) {
+        grid.innerHTML = '<span class="text-danger small fw-600">Venue is fully booked for this date!</span>';
+        document.getElementById('slotsWrapper').style.display = 'none';
+        return;
+    }
+
+    // Generate duration buttons from 1.0 to 20.0 or maxGap
+    for (let h = 1.0; h <= 20.0; h += 0.5) {
+        if (h * 60 > maxGapMins) break;
+        
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-600';
+        btn.style.fontSize = '0.75rem';
+        btn.textContent = h % 1 === 0 ? h + ' Hour' : h + ' Hours';
+        if (h === 1) btn.textContent = '1 Hour';
+        
+        btn.onclick = () => {
+            document.querySelectorAll('#durationGrid button').forEach(b => b.classList.replace('btn-primary', 'btn-outline-primary'));
+            btn.classList.replace('btn-outline-primary', 'btn-primary');
+            document.getElementById('slotDuration').value = h;
+            renderSlots();
+        };
+        grid.appendChild(btn);
+    }
+}
 
 function timeStrToInt(timeStr) {
     if (!timeStr) return 0;
@@ -305,6 +354,7 @@ function renderSlots() {
   document.getElementById('hiddenSlotStart').value = '';
   document.getElementById('hiddenSlotEnd').value = '';
 
+  const durationSelect = document.getElementById('slotDuration');
   const durationHrs = parseFloat(durationSelect.value);
   const durationMins = durationHrs * 60;
   
