@@ -96,7 +96,13 @@ layoutSidebar('seller', 'My Venues');
       <!-- Map Section -->
       <div class="col-12 mb-3 mt-4">
         <label class="form-label fw-600 small text-primary"><span class="material-icons align-middle fs-6 me-1">pin_drop</span>Pinpoint on Map</label>
-        <p class="text-muted small mb-2">Click or drag the marker to your venue's exact location to automatically fill the address fields below.</p>
+        <p class="text-muted small mb-2">Search for a landmark or your city, then drag the marker to your venue's exact location to automatically fill the fields.</p>
+        
+        <div class="input-group mb-2 shadow-sm border rounded">
+            <input type="text" id="mapSearchInput" class="form-control border-0 bg-light" placeholder="Search a landmark, area, or city (e.g., BKC Mumbai)">
+            <button class="btn btn-dark shadow-0 px-4" type="button" id="mapSearchBtn"><span class="material-icons align-middle fs-6">search</span></button>
+        </div>
+
         <div id="venueMap" style="height: 350px; width: 100%; border-radius: 8px; border: 1px solid #ddd; z-index: 1;"></div>
       </div>
 
@@ -217,6 +223,44 @@ document.addEventListener('DOMContentLoaded', function() {
     map.on('click', function(e) {
         marker.setLatLng(e.latlng);
         updateAddress(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Handle landmark map search
+    const searchBtn = document.getElementById('mapSearchBtn');
+    const searchInput = document.getElementById('mapSearchInput');
+
+    function performSearch() {
+        const query = searchInput.value.trim();
+        if (!query) return;
+        
+        const btnIcon = searchBtn.innerHTML;
+        searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+        
+        fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&limit=1`)
+        .then(res => res.json())
+        .then(data => {
+            searchBtn.innerHTML = btnIcon;
+            if (data && data.length > 0) {
+                const lat = data[0].lat;
+                const lon = data[0].lon;
+                map.setView([lat, lon], 15);
+                marker.setLatLng([lat, lon]);
+                updateAddress(lat, lon);
+            } else {
+                alert("Location not found. Try a broader search term.");
+            }
+        }).catch(err => {
+            console.error("Search failed", err);
+            searchBtn.innerHTML = btnIcon;
+        });
+    }
+
+    searchBtn.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
     });
 });
 </script>
