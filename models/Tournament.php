@@ -104,9 +104,32 @@ class Tournament {
 
     public function registerCustomer(int $tournamentId, int $customerId, string $playerDetails = ''): int {
         $ref = 'TRN-' . strtoupper(bin2hex(random_bytes(4)));
-        $stmt = $this->db->prepare("INSERT INTO tournament_registrations (reference, tournament_id, customer_id, player_details) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$ref, $tournamentId, $customerId, $playerDetails]);
-        return (int)$this->db->lastInsertId();
+        $db = $this->db;
+        
+        $db->beginTransaction();
+        try {
+            $stmt = $db->prepare("INSERT INTO tournament_registrations (reference, tournament_id, customer_id, player_details) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$ref, $tournamentId, $customerId, $playerDetails]);
+            $registrationId = (int)$db->lastInsertId();
+
+            // Record revenue if there is a fee
+            $stmt = $db->prepare("SELECT seller_id, registration_fee FROM tournaments WHERE id = ?");
+            $stmt->execute([$tournamentId]);
+            $t = $stmt->fetch();
+            
+            if ($t && $t['registration_fee'] > 0) {
+                $db->prepare("INSERT INTO revenue_log (seller_id, booking_id, amount) VALUES (?, NULL, ?)")
+                   ->execute([$t['seller_id'], $t['registration_fee']]);
+                // Note: booking_id is NULL for tournament registrations, or we might need a separate tournament_reg_id column
+                // For now, let's keep it simple or use a comment mapping.
+            }
+
+            $db->commit();
+            return $registrationId;
+        } catch (Exception $e) {
+            $db->rollBack();
+            throw $e;
+        }
     }
 
     public function isRegistered(int $tournamentId, int $customerId): bool {

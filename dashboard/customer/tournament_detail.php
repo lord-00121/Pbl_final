@@ -231,6 +231,13 @@ layoutSidebar($user['role'], 'Browse Tournaments');
                 <div class="form-text x-small mt-2">Please ensure all player details are accurate for verification.</div>
             </div>
 
+            <?php if ($tournament['registration_fee'] > 0): ?>
+            <div class="d-flex justify-content-between align-items-center mb-4 p-2 bg-light rounded px-3 border-start border-primary border-4">
+                <span class="text-muted small fw-600">Registration Fee</span>
+                <span class="h5 m-0 fw-800 text-primary">₹<?php echo number_format($tournament['registration_fee']); ?></span>
+            </div>
+            <?php endif; ?>
+
             <div class="form-check mb-4">
                 <input class="form-check-input" type="checkbox" id="termsCheck" required>
                 <label class="form-check-label small text-muted" for="termsCheck">

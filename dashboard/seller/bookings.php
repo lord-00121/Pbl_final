@@ -10,10 +10,11 @@ $db = getPDO();
 
 // Get bookings for venues owned by this seller
 $stmt = $db->prepare("
-    SELECT b.*, v.name as venue_name, v.sport_type, u.name as customer_name, u.email as customer_email, u.phone as customer_phone
+    SELECT b.*, v.name as venue_name, v.sport_type, v.price_per_slot, u.name as customer_name, u.email as customer_email, u.phone as customer_phone, COALESCE(rl.amount, v.price_per_slot) as total_price
     FROM bookings b
     JOIN venues v ON b.venue_id = v.id
     JOIN users u ON b.customer_id = u.id
+    LEFT JOIN revenue_log rl ON rl.booking_id = b.id
     WHERE v.seller_id = ?
     ORDER BY b.slot_date DESC, b.slot_start DESC
 ");
