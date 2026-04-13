@@ -78,10 +78,10 @@ layoutSidebar($user['role'], 'Browse Tournaments');
         <?php endif; ?>
       </div>
       <?php if (count($photos) > 1): ?>
-      <button class="carousel-control-prev" type="button" data-mdb-target="#eventCarousel" data-mdb-slide="prev" style="opacity:1; z-index:100;">
+      <button class="carousel-control-prev" type="button" style="opacity:1; z-index:100; border:none; background:none;">
         <span class="material-icons bg-dark text-white rounded-circle p-2 shadow-sm" style="pointer-events:none;" aria-hidden="true">chevron_left</span>
       </button>
-      <button class="carousel-control-next" type="button" data-mdb-target="#eventCarousel" data-mdb-slide="next" style="opacity:1; z-index:100;">
+      <button class="carousel-control-next" type="button" style="opacity:1; z-index:100; border:none; background:none;">
         <span class="material-icons bg-dark text-white rounded-circle p-2 shadow-sm" style="pointer-events:none;" aria-hidden="true">chevron_right</span>
       </button>
       <?php endif; ?>
@@ -229,6 +229,73 @@ if (navigator.geolocation) {
     });
 }
 <?php endif; ?>
+</script>
+
+<style>
+#zoomImg { max-width:100%; max-height:100%; object-fit: contain; }
+/* Amazon-style Theater Gallery */
+#imageZoomModal { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; }
+.gallery-close { position:absolute; top:20px; right:20px; color:white; font-size:40px; cursor:pointer; z-index:10001; }
+.gallery-nav { position:absolute; top:50%; transform:translateY(-50%); color:white; font-size:50px; cursor:pointer; z-index:10001; background:rgba(0,0,0,0.3); border-radius:50%; width:60px; height:60px; display:flex; align-items:center; justify-content:center; border:none; }
+.gallery-nav:hover { background:rgba(255,255,255,0.2); }
+.gallery-prev { left:20px; }
+.gallery-next { right:20px; }
+.gallery-counter { position:absolute; bottom:20px; color:white; font-size:16px; font-weight:600; }
+</style>
+
+<!-- Amazon-style Theater Modal -->
+<div id="imageZoomModal">
+    <span class="gallery-close" onclick="closeGallery()">&times;</span>
+    <button class="gallery-nav gallery-prev" onclick="changeGalleryImage(-1)">&#10094;</button>
+    <img id="zoomImg" src="">
+    <button class="gallery-nav gallery-next" onclick="changeGalleryImage(1)">&#10095;</button>
+    <div class="gallery-counter" id="galleryCounter"></div>
+</div>
+
+<script>
+const eventPhotos = <?php echo json_encode(array_map(fn($p) => imgUrl($p['photo_url']), $photos)); ?>;
+let currentGalleryIndex = 0;
+
+function openGallery(index) {
+    currentGalleryIndex = index;
+    updateGallery();
+    document.getElementById('imageZoomModal').style.display = 'flex';
+}
+
+function updateGallery() {
+    document.getElementById('zoomImg').src = eventPhotos[currentGalleryIndex];
+    document.getElementById('galleryCounter').textContent = `${currentGalleryIndex + 1} / ${eventPhotos.length}`;
+}
+
+function changeGalleryImage(step) {
+    currentGalleryIndex += step;
+    if (currentGalleryIndex >= eventPhotos.length) currentGalleryIndex = 0;
+    if (currentGalleryIndex < 0) currentGalleryIndex = eventPhotos.length - 1;
+    updateGallery();
+}
+
+function closeGallery() {
+    document.getElementById('imageZoomModal').style.display = 'none';
+}
+
+function initLightbox() {
+    document.querySelectorAll('.carousel-item img').forEach((img, idx) => {
+        img.style.cursor = 'zoom-in';
+        img.onclick = () => openGallery(idx);
+    });
+}
+document.addEventListener('DOMContentLoaded', () => {
+    initLightbox();
+    // Manual arrow fix
+    const prevBtn = document.querySelector('.carousel-control-prev');
+    const nextBtn = document.querySelector('.carousel-control-next');
+    const carouselEl = document.querySelector('#eventCarousel');
+    if(prevBtn && nextBtn && carouselEl) {
+        const carousel = new mdb.Carousel(carouselEl);
+        prevBtn.onclick = (e) => { e.preventDefault(); carousel.prev(); };
+        nextBtn.onclick = (e) => { e.preventDefault(); carousel.next(); };
+    }
+});
 </script>
 
 <?php layoutFooter(); ?>

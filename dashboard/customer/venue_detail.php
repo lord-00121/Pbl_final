@@ -98,10 +98,10 @@ layoutSidebar($user['role'], 'Browse Venues');
         <?php endif; ?>
       </div>
       <?php if (count($photos) > 1): ?>
-      <button class="carousel-control-prev" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="prev" style="opacity:1; z-index:100;">
+      <button class="carousel-control-prev" type="button" style="opacity:1; z-index:100; border:none; background:none;">
         <span class="material-icons bg-dark text-white rounded-circle p-2 shadow-sm" style="pointer-events:none;" aria-hidden="true">chevron_left</span>
       </button>
-      <button class="carousel-control-next" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="next" style="opacity:1; z-index:100;">
+      <button class="carousel-control-next" type="button" style="opacity:1; z-index:100; border:none; background:none;">
         <span class="material-icons bg-dark text-white rounded-circle p-2 shadow-sm" style="pointer-events:none;" aria-hidden="true">chevron_right</span>
       </button>
       <?php endif; ?>
@@ -290,7 +290,19 @@ function initLightbox() {
         img.onclick = () => openGallery(idx);
     });
 }
-document.addEventListener('DOMContentLoaded', initLightbox);
+document.addEventListener('DOMContentLoaded', () => {
+    initLightbox();
+    // Manual arrow fix
+    const prevBtn = document.querySelector('.carousel-control-prev');
+    const nextBtn = document.querySelector('.carousel-control-next');
+    const carouselEl = document.querySelector('#venueCarousel');
+    if(prevBtn && nextBtn && carouselEl) {
+        // Initialize MDB Carousel manually if not done
+        const carousel = new mdb.Carousel(carouselEl);
+        prevBtn.onclick = (e) => { e.preventDefault(); carousel.prev(); };
+        nextBtn.onclick = (e) => { e.preventDefault(); carousel.next(); };
+    }
+});
 const venueId = <?php echo $id; ?>;
 const opStart = '<?php echo $venue['operating_hours_start']; ?>';
 const opEnd = '<?php echo $venue['operating_hours_end']; ?>';
