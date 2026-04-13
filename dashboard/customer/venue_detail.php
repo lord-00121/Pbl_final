@@ -98,8 +98,12 @@ layoutSidebar($user['role'], 'Browse Venues');
         <?php endif; ?>
       </div>
       <?php if (count($photos) > 1): ?>
-      <button class="carousel-control-prev" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="prev"><span class="carousel-control-prev-icon bg-dark rounded-circle p-2"></span></button>
-      <button class="carousel-control-next" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="next"><span class="carousel-control-next-icon bg-dark rounded-circle p-2"></span></button>
+      <button class="carousel-control-prev" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true" style="filter: invert(1) grayscale(100%) brightness(0);"></span>
+      </button>
+      <button class="carousel-control-next" type="button" data-mdb-target="#venueCarousel" data-mdb-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true" style="filter: invert(1) grayscale(100%) brightness(0);"></span>
+      </button>
       <?php endif; ?>
     </div>
 
@@ -233,7 +237,14 @@ layoutSidebar($user['role'], 'Browse Venues');
 .slot-chip:not(.booked):hover { border-color: var(--primary); background: #f0fdf4; color: var(--primary); transform: translateY(-2px); }
 .slot-chip.selected { border-color: var(--primary); background: var(--primary); color: white; border-width: 2px; }
 .slot-chip.booked { opacity: 0.4; background: #e9ecef; cursor: not-allowed; text-decoration: line-through; border-style: dotted; }
+
+/* Lightbox Style */
+#imageZoomModal { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); cursor:zoom-out; align-items:center; justify-content:center; }
+#zoomImg { max-width:90%; max-height:90%; border-radius:8px; box-shadow:0 0 30px rgba(0,0,0,0.5); }
 </style>
+
+<!-- Image Zoom Modal -->
+<div id="imageZoomModal" onclick="this.style.display='none'"><img id="zoomImg" src=""></div>
 
 <script>
 const venueId = <?php echo $id; ?>;
@@ -280,11 +291,15 @@ dateInput.addEventListener('change', async function() {
   try {
       const res = await fetch(`<?php echo BASE_URL; ?>/api/slots.php?venue_id=${venueId}&date=${date}`);
       const data = await res.json();
+      if(data.error) {
+          grid.innerHTML = `<span class="text-danger small">${data.error}</span>`;
+          return;
+      }
       currentBooked = data.booked || [];
       renderDurations();
   } catch(e) { 
-      console.error('Failed to fetch slots.'); 
-      grid.innerHTML = '<span class="text-danger small">Error loading availability.</span>';
+      console.error('Failed to fetch slots.', e); 
+      grid.innerHTML = '<span class="text-danger small">Network error or session expired. Please refresh.</span>';
   }
 });
 
@@ -354,6 +369,15 @@ function renderSlots() {
   document.getElementById('hiddenSlotStart').value = '';
   document.getElementById('hiddenSlotEnd').value = '';
 
+  // Lightbox trigger for images
+  document.querySelectorAll('.carousel-item img').forEach(img => {
+      img.style.cursor = 'zoom-in';
+      img.onclick = () => {
+          document.getElementById('zoomImg').src = img.src;
+          document.getElementById('imageZoomModal').style.display = 'flex';
+      };
+  });
+
   const durationSelect = document.getElementById('slotDuration');
   const durationHrs = parseFloat(durationSelect.value);
   const durationMins = durationHrs * 60;
@@ -367,7 +391,7 @@ function renderSlots() {
   const stepMins = 30; // generate a slot every 30 minutes
   let generated = 0;
 
-  while (cur + durationMins <= end) {
+    while (cur + durationMins <= end) {
     generated++;
     const startMins = cur;
     const curEndMins = cur + durationMins;
