@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'location' => trim($_POST['location'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
         'price_per_slot' => (float)($_POST['price_per_slot'] ?? 0),
-        'slot_duration' => '01:00:00', // Defaulted to 1 hour
+        'slot_duration' => '60', // Defaulted to 60 minutes
         'operating_hours_start' => $_POST['operating_hours_start'] ?? '06:00',
         'operating_hours_end' => $_POST['operating_hours_end'] ?? '22:00',
     ];
