@@ -80,8 +80,10 @@ function layoutSidebar(string $role = 'customer', string $active = ''): void {
     } elseif ($role === 'seller') {
         $items = [
             ['l' => 'Dashboard', 'h' => "$url/dashboard/seller/index.php", 'i' => 'dashboard'],
-            ['l' => 'My Venues', 'h' => "$url/dashboard/seller/venues.php", 'i' => 'stadium'],
+            ['l' => 'Manage Venues', 'h' => "$url/dashboard/seller/venues.php", 'i' => 'stadium'],
+            ['l' => 'Manage Bookings', 'h' => "$url/dashboard/seller/bookings.php", 'i' => 'event_available'],
             ['l' => 'Tournaments', 'h' => "$url/dashboard/seller/tournaments.php", 'i' => 'emoji_events'],
+            ['l' => 'Registrations', 'h' => "$url/dashboard/seller/registrations.php", 'i' => 'people'],
             ['l' => 'Revenue', 'h' => "$url/dashboard/seller/revenue.php", 'i' => 'bar_chart'],
         ];
     } else {
