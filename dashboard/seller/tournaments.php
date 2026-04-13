@@ -7,9 +7,30 @@ requireLogin('seller');
 
 $user = currentUser();
 $db = getPDO();
-$stmt = $db->prepare("SELECT * FROM tournaments WHERE seller_id = ? ORDER BY start_date DESC");
+
+// Handle deletion
+if (isset($_GET['delete'])) {
+    $id = (int)$_GET['delete'];
+    $stmt = $db->prepare("UPDATE tournaments SET is_deleted = 1, is_active = 0 WHERE id = ? AND seller_id = ?");
+    $stmt->execute([$id, $user['id']]);
+    header('Location: tournaments.php?deleted=1');
+    exit;
+}
+
+// Handle deletion (POST/CSRF)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_tournament'])) {
+    verifyCsrf();
+    $id = (int)$_POST['tournament_id'];
+    $stmt = $db->prepare("UPDATE tournaments SET is_deleted = 1, is_active = 0 WHERE id = ? AND seller_id = ?");
+    $stmt->execute([$id, $user['id']]);
+    header('Location: tournaments.php?msg=deleted');
+    exit;
+}
+
+$stmt = $db->prepare("SELECT * FROM tournaments WHERE seller_id = ? AND is_deleted = 0 ORDER BY start_date DESC");
 $stmt->execute([$user['id']]);
 $tournaments = $stmt->fetchAll();
+$msg = $_GET['msg'] ?? '';
 
 layoutHead('Tournaments');
 layoutNavbar('seller', $user['name']);
@@ -24,6 +45,8 @@ layoutSidebar('seller', 'Tournaments');
         <span class="material-icons align-middle fs-6 me-1">add</span> Add Tournament
     </a>
 </div>
+
+<?php if ($msg === 'deleted'): ?><div class="alert alert-danger py-2 small fw-600">Tournament successfully removed.</div><?php endif; ?>
 
 <?php if (empty($tournaments)): ?>
     <div class="card p-5 text-center">
@@ -55,7 +78,12 @@ layoutSidebar('seller', 'Tournaments');
                         </div>
                         <div class="d-flex gap-2">
                             <a href="edit_tournament.php?id=<?php echo $t['id']; ?>" class="btn btn-light shadow-0 flex-grow-1">Edit</a>
-                            <button class="btn btn-outline-danger shadow-0"><span class="material-icons fs-6">delete</span></button>
+                            <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this tournament?')">
+                                <?php echo csrfInput(); ?>
+                                <input type="hidden" name="delete_tournament" value="1">
+                                <input type="hidden" name="tournament_id" value="<?php echo $t['id']; ?>">
+                                <button type="submit" class="btn btn-outline-danger shadow-0"><span class="material-icons fs-6">delete</span></button>
+                            </form>
                         </div>
                     </div>
                 </div>
