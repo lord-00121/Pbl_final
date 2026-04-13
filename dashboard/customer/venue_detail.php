@@ -169,11 +169,11 @@ layoutSidebar($user['role'], 'Browse Venues');
             <div class="mb-4">
               <label class="form-label small fw-600">Duration Needed</label>
               <select id="slotDuration" class="form-select">
-                  <option value="1">1 Hour</option>
+                  <option value="1.0">1 Hour</option>
                   <option value="1.5">1.5 Hours</option>
-                  <option value="2">2 Hours</option>
+                  <option value="2.0">2 Hours</option>
                   <option value="2.5">2.5 Hours</option>
-                  <option value="3">3 Hours</option>
+                  <option value="3.0">3 Hours</option>
               </select>
             </div>
 
@@ -287,7 +287,11 @@ durationSelect.addEventListener('change', () => {
 });
 
 function timeStrToInt(timeStr) {
-    let [h, m] = timeStr.split(':').map(Number);
+    if (!timeStr) return 0;
+    // Handle both HH:MM:SS and HH:MM
+    let parts = timeStr.split(':');
+    let h = parseInt(parts[0], 10) || 0;
+    let m = parseInt(parts[1], 10) || 0;
     return h * 60 + m;
 }
 
@@ -348,7 +352,7 @@ function renderSlots() {
         document.getElementById('hiddenSlotEnd').value = endStr;
         
         document.getElementById('summarySlot').textContent = chip.textContent;
-        document.getElementById('summaryDuration').textContent = `${durationHrs} ${durationHrs === 1 ? 'Hour' : 'Hours'}`;
+        document.getElementById('summaryDuration').textContent = `${durationHrs} ${parseFloat(durationHrs) === 1.0 ? 'Hour' : 'Hours'}`;
         document.getElementById('summaryPrice').textContent = (pricePerHour * durationHrs).toLocaleString();
         
         document.getElementById('bookingSummary').style.display = 'block';
