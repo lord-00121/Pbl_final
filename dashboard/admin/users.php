@@ -114,46 +114,34 @@ layoutSidebar('admin', 'Users');
                         </span>
                     </td>
                     <td class="text-end pe-4">
-                        <div class="dropdown">
-                            <button class="btn btn-link text-muted p-0" data-mdb-dropdown-init data-mdb-ripple-init aria-expanded="false">
-                                <span class="material-icons">more_vert</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                <?php if ($u['status'] === 'active'): ?>
-                                <li>
-                                    <form method="POST" class="d-inline">
-                                        <?php echo csrfInput(); ?>
-                                        <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
-                                        <button type="submit" name="action" value="suspend" class="dropdown-item text-warning">
-                                            <span class="material-icons fs-6 align-middle me-2">block</span> Suspend
-                                        </button>
-                                    </form>
-                                </li>
-                                <?php else: ?>
-                                <li>
-                                    <form method="POST" class="d-inline">
-                                        <?php echo csrfInput(); ?>
-                                        <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
-                                        <button type="submit" name="action" value="activate" class="dropdown-item text-success">
-                                            <span class="material-icons fs-6 align-middle me-2">check_circle</span> Activate
-                                        </button>
-                                    </form>
-                                </li>
-                                <?php endif; ?>
-                                
-                                <?php if ($u['id'] !== $user['id']): ?>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="POST" class="d-inline" onsubmit="return confirm('Delete this user permanently?');">
-                                        <?php echo csrfInput(); ?>
-                                        <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
-                                        <button type="submit" name="action" value="delete" class="dropdown-item text-danger">
-                                            <span class="material-icons fs-6 align-middle me-2">delete</span> Delete
-                                        </button>
-                                    </form>
-                                </li>
-                                <?php endif; ?>
-                            </ul>
+                        <div class="d-flex justify-content-end gap-2">
+                            <?php if ($u['status'] === 'active'): ?>
+                                <form method="POST" class="d-inline">
+                                    <?php echo csrfInput(); ?>
+                                    <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                    <button type="submit" name="action" value="suspend" class="btn btn-warning btn-floating btn-sm shadow-0" title="Suspend">
+                                        <span class="material-icons" style="font-size:1.1rem; vertical-align:middle;">block</span>
+                                    </button>
+                                </form>
+                            <?php else: ?>
+                                <form method="POST" class="d-inline">
+                                    <?php echo csrfInput(); ?>
+                                    <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                    <button type="submit" name="action" value="activate" class="btn btn-success btn-floating btn-sm shadow-0" title="Activate">
+                                        <span class="material-icons" style="font-size:1.1rem; vertical-align:middle;">check_circle</span>
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+
+                            <?php if ($u['id'] !== $user['id']): ?>
+                                <form method="POST" class="d-inline" onsubmit="return confirm('Delete this user permanently?');">
+                                    <?php echo csrfInput(); ?>
+                                    <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                    <button type="submit" name="action" value="delete" class="btn btn-danger btn-floating btn-sm shadow-0" title="Delete">
+                                        <span class="material-icons" style="font-size:1.1rem; vertical-align:middle;">delete</span>
+                                    </button>
+                                </form>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
