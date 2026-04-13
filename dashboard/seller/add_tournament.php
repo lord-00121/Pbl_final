@@ -145,6 +145,17 @@ layoutSidebar('seller', 'Tournaments');
         <label class="form-label fw-600 small">Registration Deadline</label>
         <input type="date" name="registration_deadline" class="form-control bg-light">
       </div>
+      <div class="col-md-6 mt-3">
+        <label class="form-label fw-600 small">Registration Fee (₹) <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted small">₹</span>
+          <input type="number" name="registration_fee" class="form-control border-start-0 ps-0" placeholder="0.00" step="0.01" min="0" required>
+        </div>
+      </div>
+      <div class="col-md-6 mt-3">
+        <label class="form-label fw-600 small">Team Size (Players) <span class="text-danger">*</span></label>
+        <input type="number" name="team_size" class="form-control" placeholder="e.g. 5" min="1" required>
+      </div>
       <div class="col-12">
         <label class="form-label fw-600 small">Description & Rules</label>
         <textarea name="description" class="form-control bg-light" rows="4" placeholder="Describe the tournament structure, prizes, and eligibility requirements..."></textarea>

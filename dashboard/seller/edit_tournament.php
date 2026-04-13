@@ -156,6 +156,17 @@ layoutSidebar('seller', 'Tournaments');
         <label class="form-label fw-600 small">Registration Deadline</label>
         <input type="date" name="registration_deadline" class="form-control bg-light" value="<?php echo h($tournament['registration_deadline'] ?? ''); ?>">
       </div>
+      <div class="col-md-6 mt-3">
+        <label class="form-label fw-600 small">Registration Fee (₹) <span class="text-danger">*</span></label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0 text-muted small">₹</span>
+          <input type="number" name="registration_fee" class="form-control border-start-0 ps-0" value="<?php echo h($tournament['registration_fee'] ?? '0.00'); ?>" step="0.01" min="0" required>
+        </div>
+      </div>
+      <div class="col-md-6 mt-3">
+        <label class="form-label fw-600 small">Team Size (Players) <span class="text-danger">*</span></label>
+        <input type="number" name="team_size" class="form-control" value="<?php echo h($tournament['team_size'] ?? '1'); ?>" min="1" required>
+      </div>
       <div class="col-12">
         <label class="form-label fw-600 small">Description & Rules</label>
         <textarea name="description" class="form-control bg-light" rows="4"><?php echo h($tournament['description'] ?? ''); ?></textarea>

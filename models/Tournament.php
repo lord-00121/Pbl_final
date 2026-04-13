@@ -8,26 +8,28 @@ class Tournament {
 
     public function create(array $d): int {
         $stmt = $this->db->prepare(
-            "INSERT INTO tournaments (seller_id,name,sport_type,location,city,state,pincode,latitude,longitude,description,start_date,end_date,registration_deadline)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+            "INSERT INTO tournaments (seller_id,name,sport_type,location,city,state,pincode,latitude,longitude,description,start_date,end_date,registration_deadline,registration_fee,team_size)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
         );
         $stmt->execute([
             $d['seller_id'],$d['name'],$d['sport_type'],$d['location'],
             $d['city']??'',$d['state']??'',$d['pincode']??'',
             $d['latitude']??null, $d['longitude']??null,
-            $d['description'],$d['start_date'],$d['end_date'],$d['registration_deadline']??null
+            $d['description'],$d['start_date'],$d['end_date'],$d['registration_deadline']??null,
+            $d['registration_fee']??0, $d['team_size']??1
         ]);
         return (int)$this->db->lastInsertId();
     }
 
     public function update(int $id, array $d, int $sellerId): void {
         $this->db->prepare(
-            "UPDATE tournaments SET name = ?,sport_type = ?,location = ?,city = ?,state = ?,pincode = ?,latitude = ?,longitude = ?,description = ?,start_date = ?,end_date = ?,registration_deadline = ?
+            "UPDATE tournaments SET name = ?,sport_type = ?,location = ?,city = ?,state = ?,pincode = ?,latitude = ?,longitude = ?,description = ?,start_date = ?,end_date = ?,registration_deadline = ?,registration_fee = ?,team_size = ?
              WHERE id = ? AND seller_id = ?"
         )->execute([
             $d['name'],$d['sport_type'],$d['location'],$d['city']??'',$d['state']??'',$d['pincode']??'',
             $d['latitude']??null, $d['longitude']??null, $d['description'],
             $d['start_date'],$d['end_date'],$d['registration_deadline']??null,
+            $d['registration_fee']??0, $d['team_size']??1,
             $id,$sellerId
         ]);
     }
@@ -100,10 +102,10 @@ class Tournament {
         return $stmt->fetchAll();
     }
 
-    public function registerCustomer(int $tournamentId, int $customerId): int {
+    public function registerCustomer(int $tournamentId, int $customerId, string $playerDetails = ''): int {
         $ref = 'TRN-' . strtoupper(bin2hex(random_bytes(4)));
-        $stmt = $this->db->prepare("INSERT INTO tournament_registrations (reference, tournament_id, customer_id) VALUES (?, ?, ?)");
-        $stmt->execute([$ref, $tournamentId, $customerId]);
+        $stmt = $this->db->prepare("INSERT INTO tournament_registrations (reference, tournament_id, customer_id, player_details) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$ref, $tournamentId, $customerId, $playerDetails]);
         return (int)$this->db->lastInsertId();
     }
 

@@ -39,7 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
             $db->prepare("UPDATE users SET phone = ? WHERE id = ? AND (phone IS NULL OR phone = '')")->execute([$phone, $user['id']]);
         }
 
-        $regId = $tournamentModel->registerCustomer($id, $user['id']);
+        $playerDetails = trim($_POST['player_details'] ?? '');
+        $regId = $tournamentModel->registerCustomer($id, $user['id'], $playerDetails);
         header("Location: " . BASE_URL . "/dashboard/customer/tournament_confirm.php?id=$regId");
         exit;
     }
@@ -121,6 +122,20 @@ layoutSidebar($user['role'], 'Browse Tournaments');
               </span>
           </div>
         </div>
+        <div class="d-flex align-items-center gap-2 text-muted fw-500">
+          <span class="material-icons text-primary" style="font-size:1.5rem;">payments</span> 
+          <div>
+              <span class="d-block fw-700 text-dark" style="font-size:0.8rem;">Registration Fee</span>
+              <span class="text-success fw-700">₹<?php echo number_format($tournament['registration_fee'], 2); ?></span>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 text-muted fw-500">
+          <span class="material-icons text-primary" style="font-size:1.5rem;">groups</span> 
+          <div>
+              <span class="d-block fw-700 text-dark" style="font-size:0.8rem;">Team Size</span>
+              <?php echo h($tournament['team_size']); ?> Players
+          </div>
+        </div>
       </div>
       
       <?php if ($tournament['description']): ?>
@@ -183,9 +198,15 @@ layoutSidebar($user['role'], 'Browse Tournaments');
                 <input type="email" class="form-control bg-light" value="<?php echo h($user['email']); ?>" readonly>
             </div>
 
-            <div class="mb-4">
+            <div class="mb-3">
                 <label class="form-label small fw-600">Contact Phone <span class="text-danger">*</span></label>
                 <input type="tel" name="phone" class="form-control" placeholder="We will text you updates" required>
+            </div>
+            
+            <div class="mb-4">
+                <label class="form-label small fw-600">Team / Player Details <span class="text-danger">*</span></label>
+                <textarea name="player_details" class="form-control small" rows="3" placeholder="List your team members here (Name, Age, etc.) as required by the lister." required></textarea>
+                <div class="form-text x-small">Required team size: <?php echo h($tournament['team_size']); ?> players.</div>
             </div>
 
             <div class="form-check mb-4">

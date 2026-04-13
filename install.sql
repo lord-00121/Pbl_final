@@ -107,6 +107,8 @@ CREATE TABLE `tournaments` (
   `registration_deadline` DATE         DEFAULT NULL,
   `is_active`             TINYINT(1)   NOT NULL DEFAULT 1,
   `is_deleted`            TINYINT(1)   NOT NULL DEFAULT 0,
+  `registration_fee`      DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  `team_size`             INT          NOT NULL DEFAULT 1 COMMENT 'Players per team',
   `created_at`            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_t_seller` (`seller_id`),
