@@ -50,7 +50,7 @@ layoutSidebar('seller', 'Dashboard');
                 <p class="mb-0 text-muted small text-uppercase fw-600">Monthly Revenue</p>
                 <span class="material-icons text-success bg-light p-2 rounded-circle">payments</span>
             </div>
-            <h2 class="fw-700 text-dark mb-0">₹ <span class="text-success"><?php echo number_format($revSummary['month']); ?></span></h2>
+            <h2 class="fw-700 text-dark mb-0">₹ <span class="text-success"><?php echo number_format($revSummary['month'] ?? 0); ?></span></h2>
             <div class="mt-2 text-muted" style="font-size:0.8rem;">Current month total</div>
         </div>
     </div>
@@ -62,7 +62,7 @@ layoutSidebar('seller', 'Dashboard');
                 <p class="mb-0 text-muted small text-uppercase fw-600">Total Earrings</p>
                 <span class="material-icons text-warning bg-light p-2 rounded-circle">account_balance</span>
             </div>
-            <h2 class="fw-700 text-dark mb-0">₹ <span class="text-warning"><?php echo number_format($revSummary['alltime']); ?></span></h2>
+            <h2 class="fw-700 text-dark mb-0">₹ <span class="text-warning"><?php echo number_format($revSummary['alltime'] ?? 0); ?></span></h2>
             <div class="mt-2 text-muted" style="font-size:0.8rem;">Since you joined</div>
         </div>
     </div>
