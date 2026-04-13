@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // models/Review.php
 require_once __DIR__ . '/../config/db.php';
 
@@ -43,10 +43,3 @@ class Review {
         return (int)$stmt2->fetchColumn() ===  0;
     }
 }
-
-
-
-
-
-
-
