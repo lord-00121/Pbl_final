@@ -19,7 +19,7 @@ function getPDO(): PDO {
         try {
             $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            die("Database connection failed: " . $e->getMessage());
+            throw new Exception("Connection failed: " . $e->getMessage());
         }
     }
     return $pdo;
