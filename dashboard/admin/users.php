@@ -115,7 +115,9 @@ layoutSidebar('admin', 'Users');
                     </td>
                     <td class="text-end pe-4">
                         <div class="dropdown">
-                            <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown"><span class="material-icons">more_vert</span></button>
+                            <button class="btn btn-link text-muted p-0" data-mdb-dropdown-init data-mdb-ripple-init aria-expanded="false">
+                                <span class="material-icons">more_vert</span>
+                            </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                                 <?php if ($u['status'] === 'active'): ?>
                                 <li>
