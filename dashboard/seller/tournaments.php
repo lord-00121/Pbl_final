@@ -61,9 +61,14 @@ layoutSidebar('seller', 'Tournaments');
             <div class="col-md-6">
                 <div class="card h-100 p-0 overflow-hidden border shadow-sm">
                     <div class="p-4">
-                        <div class="d-flex justify-content-between mb-2">
+                        <div class="d-flex justify-content-between mb-2 align-items-center">
                             <h5 class="fw-700 m-0"><?php echo h($t['name']); ?></h5>
-                            <span class="badge rounded-pill bg-warning text-dark px-3"><?php echo h($t['sport_type']); ?></span>
+                            <div class="d-flex gap-1">
+                                <?php if (!$t['is_active'] && strtotime($t['end_date']) < time()): ?>
+                                    <span class="badge rounded-pill bg-light text-muted border px-3">Ended</span>
+                                <?php endif; ?>
+                                <span class="badge rounded-pill bg-warning text-dark px-3"><?php echo h($t['sport_type']); ?></span>
+                            </div>
                         </div>
                         <p class="text-muted small mb-3"><span class="material-icons fs-6 align-middle me-1">location_on</span> <?php echo h($t['location']); ?></p>
                         <div class="row g-2 mb-3">

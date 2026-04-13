@@ -167,10 +167,9 @@ class Tournament {
 
     public function cleanupExpired(): void {
         $today = date('Y-m-d');
-        // We set is_active to 0 so they don't show up for booking, 
-        // but we keep them in DB for records unless they are really old.
-        // For your request, we can set is_deleted = 1 to 'delete' them automatically.
-        $stmt = $this->db->prepare("UPDATE tournaments SET is_deleted = 1, is_active = 0 WHERE end_date < ? AND is_deleted = 0");
+        // We set is_active to 0 so they don't show up for customers, 
+        // but we keep is_deleted = 0 so the Seller/Admin can still see them.
+        $stmt = $this->db->prepare("UPDATE tournaments SET is_active = 0 WHERE end_date < ? AND is_active = 1 AND is_deleted = 0");
         $stmt->execute([$today]);
     }
 
