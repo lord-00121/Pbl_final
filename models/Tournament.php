@@ -165,6 +165,15 @@ class Tournament {
         return $stmt->execute([$photoId]);
     }
 
+    public function cleanupExpired(): void {
+        $today = date('Y-m-d');
+        // We set is_active to 0 so they don't show up for booking, 
+        // but we keep them in DB for records unless they are really old.
+        // For your request, we can set is_deleted = 1 to 'delete' them automatically.
+        $stmt = $this->db->prepare("UPDATE tournaments SET is_deleted = 1, is_active = 0 WHERE end_date < ? AND is_deleted = 0");
+        $stmt->execute([$today]);
+    }
+
     public function getUniqueCities(): array {
         $stmt = $this->db->query("SELECT DISTINCT city FROM tournaments WHERE city IS NOT NULL AND city != '' AND is_deleted = 0 ORDER BY city ASC");
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
