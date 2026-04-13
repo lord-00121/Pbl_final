@@ -12,6 +12,7 @@ $search = trim($_GET['search'] ?? '');
 $sportFilter = $_GET['sport'] ?? '';
 $sortFilter  = in_array($_GET['sort'] ?? '', ['asc', 'desc']) ? $_GET['sort'] : 'asc';
 $dateFilter  = $_GET['date'] ?? ''; // YYYY-MM-DD
+$cityFilter  = trim($_GET['city'] ?? '');
 // Fetch all active tournaments, filtered server-side
 $filters = ['active' => 1];
 if ($cityFilter) $filters['city'] = $cityFilter;
