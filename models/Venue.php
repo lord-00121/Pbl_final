@@ -15,9 +15,8 @@ class Venue {
         $params = [];
 
         if (!empty($filters['q'])) {
-            $sql .= " AND (v.name LIKE ? OR v.location LIKE ?)";
-            $params[] = "%{$filters['q']}%";
-            $params[] = "%{$filters['q']}%";
+            $sql .= " AND (v.name LIKE ? OR v.location LIKE ? OR v.city LIKE ?)";
+            $params[] = "%{$filters['q']}%"; $params[] = "%{$filters['q']}%"; $params[] = "%{$filters['q']}%";
         }
         if (!empty($filters['sport'])) {
             $sql .= " AND v.sport_type IN (" . implode(',', array_fill(0, count($filters['sport']), '?')) . ")";
@@ -64,20 +63,23 @@ class Venue {
     }
 
     public function create(array $data): int {
-        $stmt = $this->db->prepare("INSERT INTO venues (seller_id, name, sport_type, location, description, price_per_slot, slot_duration, operating_hours_start, operating_hours_end) VALUES (?,?,?,?,?,?,?,?,?)");
+        $stmt = $this->db->prepare("INSERT INTO venues (seller_id, name, sport_type, location, city, state, pincode, description, price_per_slot, slot_duration, operating_hours_start, operating_hours_end) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
         $stmt->execute([
             $data['seller_id'], $data['name'], $data['sport_type'], $data['location'],
+            $data['city'] ?? '', $data['state'] ?? '', $data['pincode'] ?? '',
             $data['description'], $data['price_per_slot'], $data['slot_duration'],
             $data['operating_hours_start'], $data['operating_hours_end']
         ]);
         return (int)$this->db->lastInsertId();
+        return (int)$this->db->lastInsertId();
     }
 
     public function update(int $id, array $data, int $sellerId): void {
-        $stmt = $this->db->prepare("UPDATE venues SET name=?, sport_type=?, location=?, description=?, price_per_slot=?, slot_duration=?, operating_hours_start=?, operating_hours_end=? WHERE id=? AND seller_id=?");
+        $stmt = $this->db->prepare("UPDATE venues SET name=?, sport_type=?, location=?, city=?, state=?, pincode=?, description=?, price_per_slot=?, slot_duration=?, operating_hours_start=?, operating_hours_end=? WHERE id=? AND seller_id=?");
         $stmt->execute([
-            $data['name'], $data['sport_type'], $data['location'], $data['description'],
-            $data['price_per_slot'], $data['slot_duration'], $data['operating_hours_start'],
+            $data['name'], $data['sport_type'], $data['location'],
+            $data['city'] ?? '', $data['state'] ?? '', $data['pincode'] ?? '',
+            $data['description'], $data['price_per_slot'], $data['slot_duration'], $data['operating_hours_start'],
             $data['operating_hours_end'], $id, $sellerId
         ]);
     }
@@ -113,6 +115,14 @@ class Venue {
         if (!empty($filters['seller_id'])) {
             $where[] = "v.seller_id = ?";
             $params[] = (int)$filters['seller_id'];
+        }
+        if (!empty($filters['state'])) {
+            $where[] = "v.state = ?";
+            $params[] = $filters['state'];
+        }
+        if (!empty($filters['city'])) {
+            $where[] = "v.city = ?";
+            $params[] = $filters['city'];
         }
 
         $sql = "SELECT v.*, u.name as seller_name, 

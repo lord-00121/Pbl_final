@@ -15,6 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $sport = $_POST['sport_type'] ?? '';
     $loc = trim($_POST['location'] ?? '');
+    $city = trim($_POST['city'] ?? '');
+    $state = trim($_POST['state'] ?? '');
+    $pincode = trim($_POST['pincode'] ?? '');
     $desc = trim($_POST['description'] ?? '');
     $price = (float)($_POST['price_per_slot'] ?? 0);
     $dur = '60'; // Defaulted to 60 minutes
@@ -31,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $venueId = $venueModel->create([
             'seller_id' => $user['id'],
             'name' => $name, 'sport_type' => $sport,
-            'location' => $loc, 'description' => $desc,
+            'location' => $loc, 'city' => $city, 'state' => $state, 'pincode' => $pincode,
+            'description' => $desc,
             'price_per_slot' => $price, 'slot_duration' => $dur,
             'operating_hours_start' => $opStart, 'operating_hours_end' => $opEnd,
         ]);
@@ -86,9 +90,21 @@ layoutSidebar('seller', 'My Venues');
           <?php foreach ($sports as $s): ?><option value="<?php echo h($s); ?>"><?php echo h($s); ?></option><?php endforeach; ?>
         </select>
       </div>
-      <div class="col-md-8">
-        <label class="form-label fw-600 small" for="vloc">Location / Address <span class="text-danger">*</span></label>
-        <input type="text" id="vloc" name="location" class="form-control" placeholder="123 Stadium Road, Andheri West, Mumbai" required>
+      <div class="col-12">
+        <label class="form-label fw-600 small" for="vloc">Full Location / Address <span class="text-danger">*</span></label>
+        <input type="text" id="vloc" name="location" class="form-control" placeholder="123 Stadium Road, Near Park" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600 small" for="vcity">City <span class="text-danger">*</span></label>
+        <input type="text" id="vcity" name="city" class="form-control" placeholder="e.g. Mumbai" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600 small" for="vstate">State <span class="text-danger">*</span></label>
+        <input type="text" id="vstate" name="state" class="form-control" placeholder="e.g. Maharashtra" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600 small" for="vpincode">Pincode / Zip <span class="text-danger">*</span></label>
+        <input type="text" id="vpincode" name="pincode" class="form-control" placeholder="e.g. 400053" required>
       </div>
       <div class="col-md-4">
         <label class="form-label fw-600 small" for="vprice">Price per Slot (₹) <span class="text-danger">*</span></label>

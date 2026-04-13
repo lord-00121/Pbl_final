@@ -12,9 +12,14 @@ $search = trim($_GET['search'] ?? '');
 $sportFilter = $_GET['sport'] ?? '';
 $sortFilter  = in_array($_GET['sort'] ?? '', ['asc', 'desc']) ? $_GET['sort'] : 'asc';
 $dateFilter  = $_GET['date'] ?? ''; // YYYY-MM-DD
+$stateFilter = trim($_GET['state'] ?? '');
+$cityFilter  = trim($_GET['city'] ?? '');
 
 // Fetch all active tournaments, filtered server-side
-$allTournaments = $model->getAll(['active' => 1]);
+$filters = ['active' => 1];
+if ($stateFilter) $filters['state'] = $stateFilter;
+if ($cityFilter) $filters['city'] = $cityFilter;
+$allTournaments = $model->getAll($filters);
 
 $filtered = [];
 foreach ($allTournaments as $t) {
@@ -56,7 +61,7 @@ layoutSidebar($user['role'], 'Browse Tournaments');
             </div>
         </div>
         <!-- Sport -->
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="form-label small fw-600 text-muted mb-1">Sport</label>
             <select name="sport" class="form-select fs-6">
                 <option value="">All Sports</option>
@@ -64,6 +69,16 @@ layoutSidebar($user['role'], 'Browse Tournaments');
                     <option value="<?php echo h($s); ?>" <?php echo $sportFilter === $s ? 'selected' : ''; ?>><?php echo h($s); ?></option>
                 <?php endforeach; ?>
             </select>
+        </div>
+        <!-- State -->
+        <div class="col-md-2">
+            <label class="form-label small fw-600 text-muted mb-1">State</label>
+            <input type="text" name="state" class="form-control fs-6" placeholder="e.g. Maharashtra" value="<?php echo h($stateFilter); ?>">
+        </div>
+        <!-- City -->
+        <div class="col-md-2">
+            <label class="form-label small fw-600 text-muted mb-1">City</label>
+            <input type="text" name="city" class="form-control fs-6" placeholder="e.g. Mumbai" value="<?php echo h($cityFilter); ?>">
         </div>
         <!-- Sort -->
         <div class="col-md-2">
@@ -79,14 +94,12 @@ layoutSidebar($user['role'], 'Browse Tournaments');
             <input type="date" name="date" class="form-control fs-6" value="<?php echo h($dateFilter); ?>">
         </div>
         <!-- Buttons -->
-        <div class="col-md-1 d-flex gap-2">
-            <button class="btn btn-primary shadow-0 flex-grow-1" type="submit">Go</button>
+        <div class="col-12 mt-2 d-flex gap-2">
+            <button class="btn btn-primary shadow-0 px-4" type="submit">Go</button>
+            <?php if ($search || $sportFilter || $dateFilter || $sortFilter !== 'asc' || $stateFilter || $cityFilter): ?>
+            <a href="<?php echo BASE_URL; ?>/dashboard/customer/browse_tournaments.php" class="btn btn-outline-secondary fw-500">Clear Filters</a>
+            <?php endif; ?>
         </div>
-        <?php if ($search || $sportFilter || $dateFilter || $sortFilter !== 'asc'): ?>
-        <div class="col-12">
-            <a href="<?php echo BASE_URL; ?>/dashboard/customer/browse_tournaments.php" class="btn btn-sm btn-outline-secondary fw-500">Clear Filters</a>
-        </div>
-        <?php endif; ?>
     </form>
 </div>
 
@@ -120,7 +133,10 @@ layoutSidebar($user['role'], 'Browse Tournaments');
                 
                 <div class="d-flex align-items-center gap-2 mb-2 text-muted small mt-2">
                     <span class="material-icons text-primary" style="font-size:16px;">location_on</span>
-                    <span class="text-truncate"><?php echo h($t['location']); ?></span>
+                    <span class="text-truncate">
+                        <?php echo h($t['location']); ?>
+                        <?php if (!empty($t['city'])): echo '<br><span class="ms-4">'.h($t['city']).(!empty($t['state']) ? ', '.h($t['state']) : '').'</span>'; endif; ?>
+                    </span>
                 </div>
                 
                 <div class="d-flex align-items-center gap-2 text-muted small mb-3">

@@ -10,6 +10,10 @@ $tournamentModel = new Tournament();
 $error = '';
 $sports = ['Cricket','Football','Badminton','Basketball','Tennis','Swimming','Others'];
 
+require_once __DIR__ . '/../../models/Venue.php';
+$venueModelObj = new Venue();
+$sellerVenues = $venueModelObj->getBySeller($user['id']);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verifyCsrf();
     $data = [
@@ -17,6 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'name' => trim($_POST['name'] ?? ''),
         'sport_type' => $_POST['sport_type'] ?? '',
         'location' => trim($_POST['location'] ?? ''),
+        'city' => trim($_POST['city'] ?? ''),
+        'state' => trim($_POST['state'] ?? ''),
+        'pincode' => trim($_POST['pincode'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
         'start_date' => $_POST['start_date'] ?? '',
         'end_date' => $_POST['end_date'] ?? '',
@@ -25,6 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!$data['name'] || !$data['sport_type'] || !$data['location'] || !$data['start_date'] || !$data['end_date']) {
         $error = 'Please fill all required fields.';
+    } elseif (strtotime($data['end_date']) < strtotime($data['start_date'])) {
+        $error = 'End Date cannot be before the Start Date.';
+    } elseif ($data['registration_deadline'] && strtotime($data['registration_deadline']) > strtotime($data['start_date'])) {
+        $error = 'Registration Deadline cannot be after the Start Date.';
     } else {
         $tId = $tournamentModel->create($data);
         if (!empty($_FILES['photos']['name'][0])) {
@@ -78,9 +89,39 @@ layoutSidebar('seller', 'Tournaments');
           <?php endforeach; ?>
         </select>
       </div>
+      <!-- Address Section with Auto-fill option -->
+      <div class="col-12 mt-4">
+          <h6 class="fw-700 text-uppercase small text-muted border-bottom pb-2 mb-3">Event Location</h6>
+          <?php if (!empty($sellerVenues)): ?>
+          <div class="mb-3 bg-light p-3 rounded border">
+              <label class="form-label fw-600 small text-primary">Autofill from your venues?</label>
+              <select id="venueAutoFill" class="form-select border-primary" style="background:#fff;">
+                  <option value="">-- Choose a venue to copy its address --</option>
+                  <?php foreach($sellerVenues as $sv): ?>
+                      <option value="<?php echo h($sv['id']); ?>" data-loc="<?php echo h($sv['location']); ?>" data-city="<?php echo h($sv['city'] ?? ''); ?>" data-state="<?php echo h($sv['state'] ?? ''); ?>" data-pin="<?php echo h($sv['pincode'] ?? ''); ?>">
+                          <?php echo h($sv['name'] . ' - ' . $sv['location']); ?>
+                      </option>
+                  <?php endforeach; ?>
+              </select>
+          </div>
+          <?php endif; ?>
+      </div>
+
       <div class="col-12">
-        <label class="form-label fw-600 small">Location <span class="text-danger">*</span></label>
-        <input type="text" name="location" class="form-control" placeholder="Venue address or complex name" required>
+        <label class="form-label fw-600 small">Location / Venue Name & Address <span class="text-danger">*</span></label>
+        <input type="text" id="tloc" name="location" class="form-control" placeholder="e.g. Green Turf Complex, 123 Main St" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600 small">City <span class="text-danger">*</span></label>
+        <input type="text" id="tcity" name="city" class="form-control" placeholder="e.g. Mumbai" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600 small">State <span class="text-danger">*</span></label>
+        <input type="text" id="tstate" name="state" class="form-control" placeholder="e.g. Maharashtra" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600 small">Pincode <span class="text-danger">*</span></label>
+        <input type="text" id="tpin" name="pincode" class="form-control" placeholder="e.g. 400053" required>
       </div>
       <div class="col-md-4">
         <label class="form-label fw-600 small">Start Date <span class="text-danger">*</span></label>
@@ -128,6 +169,29 @@ document.getElementById('tphotos').addEventListener('change', function() {
     };
     reader.readAsDataURL(file);
   });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const startInput = document.querySelector('input[name="start_date"]');
+  const endInput = document.querySelector('input[name="end_date"]');
+  const regInput = document.querySelector('input[name="registration_deadline"]');
+  
+  startInput.addEventListener('change', () => {
+    endInput.min = startInput.value;
+    regInput.max = startInput.value;
+  });
+
+  const autofill = document.getElementById('venueAutoFill');
+  if (autofill) {
+      autofill.addEventListener('change', function() {
+          const selected = this.options[this.selectedIndex];
+          if (!selected.value) return;
+          document.getElementById('tloc').value = selected.getAttribute('data-loc');
+          document.getElementById('tcity').value = selected.getAttribute('data-city');
+          document.getElementById('tstate').value = selected.getAttribute('data-state');
+          document.getElementById('tpin').value = selected.getAttribute('data-pin');
+      });
+  }
 });
 </script>
 

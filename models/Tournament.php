@@ -8,11 +8,12 @@ class Tournament {
 
     public function create(array $d): int {
         $stmt = $this->db->prepare(
-            "INSERT INTO tournaments (seller_id,name,sport_type,location,description,start_date,end_date,registration_deadline)
-             VALUES (?,?,?,?,?,?,?,?)"
+            "INSERT INTO tournaments (seller_id,name,sport_type,location,city,state,pincode,description,start_date,end_date,registration_deadline)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?)"
         );
         $stmt->execute([
             $d['seller_id'],$d['name'],$d['sport_type'],$d['location'],
+            $d['city']??'',$d['state']??'',$d['pincode']??'',
             $d['description'],$d['start_date'],$d['end_date'],$d['registration_deadline']??null
         ]);
         return (int)$this->db->lastInsertId();
@@ -20,10 +21,10 @@ class Tournament {
 
     public function update(int $id, array $d, int $sellerId): void {
         $this->db->prepare(
-            "UPDATE tournaments SET name = ?,sport_type = ?,location = ?,description = ?,start_date = ?,end_date = ?,registration_deadline = ?
+            "UPDATE tournaments SET name = ?,sport_type = ?,location = ?,city = ?,state = ?,pincode = ?,description = ?,start_date = ?,end_date = ?,registration_deadline = ?
              WHERE id = ? AND seller_id = ?"
         )->execute([
-            $d['name'],$d['sport_type'],$d['location'],$d['description'],
+            $d['name'],$d['sport_type'],$d['location'],$d['city']??'',$d['state']??'',$d['pincode']??'',$d['description'],
             $d['start_date'],$d['end_date'],$d['registration_deadline']??null,
             $id,$sellerId
         ]);
@@ -63,12 +64,20 @@ class Tournament {
         $params = [];
 
         if (!empty($filters['q'])) {
-            $where[] = "(t.name LIKE ? OR t.location LIKE ?)";
-            $params[] = "%{$filters['q']}%"; $params[] = "%{$filters['q']}%";
+            $where[] = "(t.name LIKE ? OR t.location LIKE ? OR t.city LIKE ?)";
+            $params[] = "%{$filters['q']}%"; $params[] = "%{$filters['q']}%"; $params[] = "%{$filters['q']}%";
         }
         if (!empty($filters['sport'])) {
             $where[] = "t.sport_type = ?";
             $params[] = $filters['sport'];
+        }
+        if (!empty($filters['state'])) {
+            $where[] = "t.state = ?";
+            $params[] = $filters['state'];
+        }
+        if (!empty($filters['city'])) {
+            $where[] = "t.city = ?";
+            $params[] = $filters['city'];
         }
         if (isset($filters['active']) && $filters['active'] !== '') {
             $where[] = "t.is_active = ?";

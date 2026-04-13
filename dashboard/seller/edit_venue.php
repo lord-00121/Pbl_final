@@ -25,6 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'name' => trim($_POST['name'] ?? ''),
         'sport_type' => $_POST['sport_type'] ?? '',
         'location' => trim($_POST['location'] ?? ''),
+        'city' => trim($_POST['city'] ?? ''),
+        'state' => trim($_POST['state'] ?? ''),
+        'pincode' => trim($_POST['pincode'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
         'price_per_slot' => (float)($_POST['price_per_slot'] ?? 0),
         'slot_duration' => '60', // Defaulted to 60 minutes
@@ -90,9 +93,21 @@ layoutSidebar('seller', 'My Venues');
           <?php endforeach; ?>
         </select>
       </div>
-      <div class="col-md-8">
-        <label class="form-label fw-600 small">Location *</label>
+      <div class="col-12">
+        <label class="form-label fw-600 small">Full Location / Address *</label>
         <input type="text" name="location" class="form-control" value="<?php echo h($venue['location']); ?>" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600 small">City *</label>
+        <input type="text" name="city" class="form-control" value="<?php echo h($venue['city'] ?? ''); ?>" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600 small">State *</label>
+        <input type="text" name="state" class="form-control" value="<?php echo h($venue['state'] ?? ''); ?>" required>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600 small">Pincode / Zip *</label>
+        <input type="text" name="pincode" class="form-control" value="<?php echo h($venue['pincode'] ?? ''); ?>" required>
       </div>
       <div class="col-md-4">
         <label class="form-label fw-600 small">Price per Slot (₹) *</label>

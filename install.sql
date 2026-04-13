@@ -13,11 +13,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
--- Create & select database
-CREATE DATABASE IF NOT EXISTS `sportify`
-  DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-USE `sportify`;
+-- Target database is selected automatically by the cloud provider
 
 -- ============================================================
 -- Drop existing tables (safe re-import)
@@ -60,6 +56,9 @@ CREATE TABLE `venues` (
   `name`                  VARCHAR(200)    NOT NULL,
   `sport_type`            ENUM('Cricket','Football','Badminton','Basketball','Tennis','Swimming','Others') NOT NULL,
   `location`              VARCHAR(300)    NOT NULL,
+  `city`                  VARCHAR(100)    DEFAULT NULL,
+  `state`                 VARCHAR(100)    DEFAULT NULL,
+  `pincode`               VARCHAR(20)     DEFAULT NULL,
   `description`           TEXT            DEFAULT NULL,
   `price_per_slot`        DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
   `slot_duration`         ENUM('30','60','120') NOT NULL DEFAULT '60',
@@ -99,6 +98,9 @@ CREATE TABLE `tournaments` (
   `name`                  VARCHAR(200) NOT NULL,
   `sport_type`            ENUM('Cricket','Football','Badminton','Basketball','Tennis','Swimming','Others') NOT NULL,
   `location`              VARCHAR(300) NOT NULL,
+  `city`                  VARCHAR(100) DEFAULT NULL,
+  `state`                 VARCHAR(100) DEFAULT NULL,
+  `pincode`               VARCHAR(20)  DEFAULT NULL,
   `description`           TEXT         DEFAULT NULL,
   `start_date`            DATE         NOT NULL,
   `end_date`              DATE         NOT NULL,

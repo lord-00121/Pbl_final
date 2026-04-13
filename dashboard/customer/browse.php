@@ -23,6 +23,8 @@ $filters = [
     'sport'      => isset($_GET['sport']) && $_GET['sport'] !== '' ? [trim($_GET['sport'])] : [],
     'sort'       => $sort,
     'start_time' => $startTime,
+    'state'      => trim($_GET['state'] ?? ''),
+    'city'       => trim($_GET['city'] ?? ''),
 ];
 $venues = $venueModel->search($filters);
 
@@ -53,6 +55,14 @@ layoutSidebar('customer', 'Browse Venues');
                     </select>
                 </div>
                 <div class="col-md-3">
+                    <label class="form-label small fw-600 text-muted">State</label>
+                    <input type="text" name="state" class="form-control bg-light" placeholder="e.g. Maharashtra" value="<?php echo h($filters['state']); ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-600 text-muted">City</label>
+                    <input type="text" name="city" class="form-control bg-light" placeholder="e.g. Mumbai" value="<?php echo h($filters['city']); ?>">
+                </div>
+                <div class="col-md-3">
                     <label class="form-label small fw-600 text-muted">Sort By</label>
                     <select name="sort" class="form-select bg-light">
                         <option value="rating"      <?php echo $sort === 'rating'     ? 'selected' : ''; ?>>Best Rated</option>
@@ -81,11 +91,11 @@ layoutSidebar('customer', 'Browse Venues');
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-md-7"></div>
+                <div class="col-md-1 d-flex align-items-end"></div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100 fw-600 shadow-0">Search</button>
                 </div>
-                <?php if (!empty($filters['q']) || !empty($filters['sport']) || $sort !== 'rating' || !empty($startTime)): ?>
+                <?php if (!empty($filters['q']) || !empty($filters['sport']) || $sort !== 'rating' || !empty($startTime) || !empty($filters['state']) || !empty($filters['city'])): ?>
                 <div class="col-md-3 d-flex align-items-end">
                     <a href="browse.php" class="btn btn-outline-secondary w-100 fw-500">Clear Filters</a>
                 </div>
@@ -126,7 +136,11 @@ layoutSidebar('customer', 'Browse Venues');
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <h5 class="fw-700 m-0"><?php echo h($v['name']); ?></h5>
                         </div>
-                        <p class="text-muted small fw-500 mb-3"><span class="material-icons text-primary fs-6 align-middle me-1">location_on</span> <?php echo h($v['location']); ?></p>
+                        <p class="text-muted small fw-500 mb-3">
+                            <span class="material-icons text-primary fs-6 align-middle me-1">location_on</span> 
+                            <?php echo h($v['location']); ?>
+                            <?php if (!empty($v['city'])): echo '<br><span class="ms-4">'.h($v['city']).(!empty($v['state']) ? ', '.h($v['state']) : '').'</span>'; endif; ?>
+                        </p>
                         
                         <div class="mt-auto d-flex justify-content-between align-items-end pt-3 border-top">
                             <div>
