@@ -85,7 +85,11 @@ layoutSidebar($user['role'], 'Browse Venues');
       <div class="carousel-inner">
         <?php if (!empty($photos)): foreach ($photos as $i => $p): ?>
         <div class="carousel-item <?php echo $i === 0 ? 'active' : ''; ?>">
-          <img src="<?php echo imgUrl($p['photo_url']); ?>" class="d-block w-100" style="object-fit:cover; height:400px; background:#f0f0f0;" alt="Venue photo">
+          <img src="<?php echo imgUrl($p['photo_url']); ?>" 
+               class="d-block w-100" 
+               style="object-fit:cover; height:400px; background:#f0f0f0;" 
+               onerror="this.src='https://placehold.co/800x400/eeeeee/aaaaaa?text=Venue+Photo';"
+               alt="Venue photo">
         </div>
         <?php endforeach; else: ?>
         <div class="d-flex align-items-center justify-content-center bg-light" style="height:400px;">
@@ -178,8 +182,9 @@ layoutSidebar($user['role'], 'Browse Venues');
             </div>
 
             <div class="mb-4" id="slotsWrapper" style="display:none">
-              <label class="form-label small fw-600">Available Timeslots</label>
+              <label class="form-label small fw-600">3. Select Timeslot</label>
               <div id="slotChips" class="d-flex flex-wrap gap-2"></div>
+              <div id="noSlotsMsg" class="text-danger small mt-2" style="display:none">No slots available for this duration.</div>
             </div>
 
             <!-- Summary & Confirmation -->
@@ -271,12 +276,11 @@ const durationSelect = document.getElementById('slotDuration');
 
 dateInput.addEventListener('change', async function() {
   const date = this.value;
-  durationSelect.disabled = false;
-  
   try {
       const res = await fetch(`<?php echo BASE_URL; ?>/api/slots.php?venue_id=${venueId}&date=${date}`);
       const data = await res.json();
       currentBooked = data.booked || [];
+      durationSelect.disabled = false;
       renderSlots();
   } catch(e) { console.error('Failed to fetch slots.'); }
 });
@@ -311,8 +315,10 @@ function renderSlots() {
   const end = timeStrToInt(opEnd);
   
   const stepMins = 30; // generate a slot every 30 minutes
+  let generated = 0;
 
   while (cur + durationMins <= end) {
+    generated++;
     const startMins = cur;
     const curEndMins = cur + durationMins;
     
@@ -356,15 +362,14 @@ function renderSlots() {
         document.getElementById('summaryPrice').textContent = (pricePerHour * durationHrs).toLocaleString();
         
         document.getElementById('bookingSummary').style.display = 'block';
+        document.getElementById('bookingSummary').scrollIntoView({ behavior: 'smooth' });
       });
     }
     chips.appendChild(chip);
     cur += stepMins;
   }
   
-  if(chips.innerHTML === '') {
-      chips.innerHTML = '<span class="text-muted small">No slots long enough.</span>';
-  }
+  document.getElementById('noSlotsMsg').style.display = generated === 0 ? 'block' : 'none';
 }
 </script>
 
