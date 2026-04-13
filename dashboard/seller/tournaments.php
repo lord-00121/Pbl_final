@@ -81,6 +81,10 @@ layoutSidebar('seller', 'Tournaments');
                                 <span class="fw-600 small"><?php echo date('d M Y', strtotime($t['end_date'])); ?></span>
                             </div>
                         </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3 bg-light p-2 rounded">
+                            <div class="small fw-700 text-success">₹<?php echo number_format($t['registration_fee'], 2); ?></div>
+                            <div class="small text-muted fw-600"><?php echo (int)$t['team_size']; ?> Players / Team</div>
+                        </div>
                         <div class="d-flex gap-2">
                             <a href="edit_tournament.php?id=<?php echo $t['id']; ?>" class="btn btn-light shadow-0 flex-grow-1">Edit</a>
                             <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this tournament?')">

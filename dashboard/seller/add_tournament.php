@@ -30,6 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'start_date' => $_POST['start_date'] ?? '',
         'end_date' => $_POST['end_date'] ?? '',
         'registration_deadline' => !empty($_POST['registration_deadline']) ? $_POST['registration_deadline'] : null,
+        'registration_fee' => (float)($_POST['registration_fee'] ?? 0),
+        'team_size' => (int)($_POST['team_size'] ?? 1),
     ];
     
     if (!$data['name'] || !$data['sport_type'] || !$data['location'] || !$data['start_date'] || !$data['end_date']) {
