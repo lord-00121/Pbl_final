@@ -90,6 +90,13 @@ layoutSidebar('seller', 'My Venues');
           <?php foreach ($sports as $s): ?><option value="<?php echo h($s); ?>"><?php echo h($s); ?></option><?php endforeach; ?>
         </select>
       </div>
+      <!-- Map Section -->
+      <div class="col-12 mb-3 mt-4">
+        <label class="form-label fw-600 small text-primary"><span class="material-icons align-middle fs-6 me-1">pin_drop</span>Pinpoint on Map</label>
+        <p class="text-muted small mb-2">Click or drag the marker to your venue's exact location to automatically fill the address fields below.</p>
+        <div id="venueMap" style="height: 350px; width: 100%; border-radius: 8px; border: 1px solid #ddd; z-index: 1;"></div>
+      </div>
+
       <div class="col-12">
         <label class="form-label fw-600 small" for="vloc">Full Location / Address <span class="text-danger">*</span></label>
         <input type="text" id="vloc" name="location" class="form-control" placeholder="123 Stadium Road, Near Park" required>
@@ -137,7 +144,56 @@ layoutSidebar('seller', 'My Venues');
   </form>
 </div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Map Setup
+    let initialLat = 20.5937, initialLng = 78.9629, zoomLevel = 4;
+    const map = L.map('venueMap').setView([initialLat, initialLng], zoomLevel);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+    let marker = L.marker([initialLat, initialLng], {draggable: true}).addTo(map);
+
+    // Auto-locate
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+            const lat = pos.coords.latitude, lng = pos.coords.longitude;
+            map.setView([lat, lng], 13);
+            marker.setLatLng([lat, lng]);
+        });
+    }
+
+    // Geocoding logic
+    function updateAddress(lat, lng) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data && data.address) {
+                const addr = data.address;
+                const locStr = data.display_name || '';
+                const city = addr.city || addr.town || addr.village || addr.county || addr.state_district || '';
+                const state = addr.state || '';
+                const pincode = addr.postcode || '';
+
+                document.getElementById('vloc').value = locStr.substring(0, 200);
+                document.getElementById('vcity').value = city;
+                document.getElementById('vstate').value = state;
+                document.getElementById('vpincode').value = pincode;
+            }
+        }).catch(err => console.error("Geocoding failed", err));
+    }
+
+    marker.on('dragend', function() {
+        const pos = marker.getLatLng();
+        updateAddress(pos.lat, pos.lng);
+    });
+
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        updateAddress(e.latlng.lat, e.latlng.lng);
+    });
+});
+
 document.getElementById('vphotos').addEventListener('change', function() {
   const preview = document.getElementById('photoPreview');
   preview.innerHTML = '';

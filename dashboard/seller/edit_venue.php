@@ -93,21 +93,28 @@ layoutSidebar('seller', 'My Venues');
           <?php endforeach; ?>
         </select>
       </div>
+      <!-- Map Section -->
+      <div class="col-12 mb-3 mt-4">
+        <label class="form-label fw-600 small text-primary"><span class="material-icons align-middle fs-6 me-1">pin_drop</span>Pinpoint on Map</label>
+        <p class="text-muted small mb-2">Click or drag the marker to your venue's exact location to automatically fill the address fields below.</p>
+        <div id="venueMap" style="height: 350px; width: 100%; border-radius: 8px; border: 1px solid #ddd; z-index: 1;"></div>
+      </div>
+
       <div class="col-12">
         <label class="form-label fw-600 small">Full Location / Address *</label>
-        <input type="text" name="location" class="form-control" value="<?php echo h($venue['location']); ?>" required>
+        <input type="text" id="vloc" name="location" class="form-control" value="<?php echo h($venue['location']); ?>" required>
       </div>
       <div class="col-md-4">
         <label class="form-label fw-600 small">City *</label>
-        <input type="text" name="city" class="form-control" value="<?php echo h($venue['city'] ?? ''); ?>" required>
+        <input type="text" id="vcity" name="city" class="form-control" value="<?php echo h($venue['city'] ?? ''); ?>" required>
       </div>
       <div class="col-md-4">
         <label class="form-label fw-600 small">State *</label>
-        <input type="text" name="state" class="form-control" value="<?php echo h($venue['state'] ?? ''); ?>" required>
+        <input type="text" id="vstate" name="state" class="form-control" value="<?php echo h($venue['state'] ?? ''); ?>" required>
       </div>
       <div class="col-md-4">
         <label class="form-label fw-600 small">Pincode / Zip *</label>
-        <input type="text" name="pincode" class="form-control" value="<?php echo h($venue['pincode'] ?? ''); ?>" required>
+        <input type="text" id="vpincode" name="pincode" class="form-control" value="<?php echo h($venue['pincode'] ?? ''); ?>" required>
       </div>
       <div class="col-md-4">
         <label class="form-label fw-600 small">Price per Slot (₹) *</label>
@@ -154,5 +161,64 @@ layoutSidebar('seller', 'My Venues');
     </div>
   </form>
 </div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let initialLat = 20.5937, initialLng = 78.9629, zoomLevel = 4;
+    const map = L.map('venueMap').setView([initialLat, initialLng], zoomLevel);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+    let marker = L.marker([initialLat, initialLng], {draggable: true}).addTo(map);
+
+    // Try finding the existing venue location strings if geo API returns something
+    let existingQuery = document.getElementById('vloc').value;
+    if (existingQuery) {
+        fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(existingQuery)}&limit=1`)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                map.setView([data[0].lat, data[0].lon], 14);
+                marker.setLatLng([data[0].lat, data[0].lon]);
+            } else if (navigator.geolocation) {
+                // fallback to user location
+                navigator.geolocation.getCurrentPosition(function(pos) {
+                    map.setView([pos.coords.latitude, pos.coords.longitude], 13);
+                    marker.setLatLng([pos.coords.latitude, pos.coords.longitude]);
+                });
+            }
+        });
+    }
+
+    function updateAddress(lat, lng) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+        .then(res => res.json())
+        .then(data => {
+            if(data && data.address) {
+                const addr = data.address;
+                const locStr = data.display_name || '';
+                const city = addr.city || addr.town || addr.village || addr.county || addr.state_district || '';
+                const state = addr.state || '';
+                const pincode = addr.postcode || '';
+
+                document.getElementById('vloc').value = locStr.substring(0, 200);
+                document.getElementById('vcity').value = city;
+                document.getElementById('vstate').value = state;
+                document.getElementById('vpincode').value = pincode;
+            }
+        }).catch(err => console.error("Geocoding failed", err));
+    }
+
+    marker.on('dragend', function() {
+        const pos = marker.getLatLng();
+        updateAddress(pos.lat, pos.lng);
+    });
+
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        updateAddress(e.latlng.lat, e.latlng.lng);
+    });
+});
+</script>
 
 <?php layoutFooter(); ?>
