@@ -22,11 +22,19 @@ class Venue {
             $sql .= " AND v.sport_type IN (" . implode(',', array_fill(0, count($filters['sport']), '?')) . ")";
             foreach ($filters['sport'] as $s) $params[] = $s;
         }
-        // Filter by start time — venue operating_hours_start must be <= chosen time AND operating_hours_end > chosen time
         if (!empty($filters['start_time'])) {
             $sql .= " AND v.operating_hours_start <= ? AND v.operating_hours_end > ?";
             $params[] = $filters['start_time'];
             $params[] = $filters['start_time'];
+        }
+
+        if (!empty($filters['state'])) {
+            $sql .= " AND v.state = ?";
+            $params[] = $filters['state'];
+        }
+        if (!empty($filters['city'])) {
+            $sql .= " AND v.city = ?";
+            $params[] = $filters['city'];
         }
 
         // Sorting
@@ -141,5 +149,10 @@ class Venue {
 
     public function adminDismiss(int $id): void {
         $this->db->prepare("UPDATE venues SET is_deleted = 1 WHERE id = ?")->execute([$id]);
+    }
+
+    public function getUniqueCities(): array {
+        $stmt = $this->db->query("SELECT DISTINCT city FROM venues WHERE city IS NOT NULL AND city != '' AND is_deleted = 0 ORDER BY city ASC");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
     }
 }

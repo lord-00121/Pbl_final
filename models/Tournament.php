@@ -148,6 +148,11 @@ class Tournament {
         $stmt->execute([$tournamentId]);
         return $stmt->fetchAll();
     }
+
+    public function getUniqueCities(): array {
+        $stmt = $this->db->query("SELECT DISTINCT city FROM tournaments WHERE city IS NOT NULL AND city != '' AND is_deleted = 0 ORDER BY city ASC");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
 }
 
 

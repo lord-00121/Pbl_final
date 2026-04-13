@@ -23,10 +23,10 @@ $filters = [
     'sport'      => isset($_GET['sport']) && $_GET['sport'] !== '' ? [trim($_GET['sport'])] : [],
     'sort'       => $sort,
     'start_time' => $startTime,
-    'state'      => trim($_GET['state'] ?? ''),
     'city'       => trim($_GET['city'] ?? ''),
 ];
 $venues = $venueModel->search($filters);
+$uniqueCities = $venueModel->getUniqueCities();
 
 $sports = ['Cricket','Football','Badminton','Basketball','Tennis','Swimming','Squash','Table Tennis','Skating','Others'];
 
@@ -55,12 +55,13 @@ layoutSidebar('customer', 'Browse Venues');
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label small fw-600 text-muted">State</label>
-                    <input type="text" name="state" class="form-control bg-light" placeholder="e.g. Maharashtra" value="<?php echo h($filters['state']); ?>">
-                </div>
-                <div class="col-md-3">
                     <label class="form-label small fw-600 text-muted">City</label>
-                    <input type="text" name="city" class="form-control bg-light" placeholder="e.g. Mumbai" value="<?php echo h($filters['city']); ?>">
+                    <select name="city" class="form-select bg-light">
+                        <option value="">All Cities</option>
+                        <?php foreach ($uniqueCities as $c): ?>
+                            <option value="<?php echo h($c); ?>" <?php echo $filters['city'] === $c ? 'selected' : ''; ?>><?php echo h($c); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label small fw-600 text-muted">Sort By</label>
@@ -95,7 +96,7 @@ layoutSidebar('customer', 'Browse Venues');
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100 fw-600 shadow-0">Search</button>
                 </div>
-                <?php if (!empty($filters['q']) || !empty($filters['sport']) || $sort !== 'rating' || !empty($startTime) || !empty($filters['state']) || !empty($filters['city'])): ?>
+                <?php if (!empty($filters['q']) || !empty($filters['sport']) || $sort !== 'rating' || !empty($startTime) || !empty($filters['city'])): ?>
                 <div class="col-md-3 d-flex align-items-end">
                     <a href="browse.php" class="btn btn-outline-secondary w-100 fw-500">Clear Filters</a>
                 </div>

@@ -12,14 +12,11 @@ $search = trim($_GET['search'] ?? '');
 $sportFilter = $_GET['sport'] ?? '';
 $sortFilter  = in_array($_GET['sort'] ?? '', ['asc', 'desc']) ? $_GET['sort'] : 'asc';
 $dateFilter  = $_GET['date'] ?? ''; // YYYY-MM-DD
-$stateFilter = trim($_GET['state'] ?? '');
-$cityFilter  = trim($_GET['city'] ?? '');
-
 // Fetch all active tournaments, filtered server-side
 $filters = ['active' => 1];
-if ($stateFilter) $filters['state'] = $stateFilter;
 if ($cityFilter) $filters['city'] = $cityFilter;
 $allTournaments = $model->getAll($filters);
+$uniqueCities = $model->getUniqueCities();
 
 $filtered = [];
 foreach ($allTournaments as $t) {
@@ -70,15 +67,15 @@ layoutSidebar($user['role'], 'Browse Tournaments');
                 <?php endforeach; ?>
             </select>
         </div>
-        <!-- State -->
-        <div class="col-md-2">
-            <label class="form-label small fw-600 text-muted mb-1">State</label>
-            <input type="text" name="state" class="form-control fs-6" placeholder="e.g. Maharashtra" value="<?php echo h($stateFilter); ?>">
-        </div>
         <!-- City -->
         <div class="col-md-2">
             <label class="form-label small fw-600 text-muted mb-1">City</label>
-            <input type="text" name="city" class="form-control fs-6" placeholder="e.g. Mumbai" value="<?php echo h($cityFilter); ?>">
+            <select name="city" class="form-select fs-6">
+                <option value="">All Cities</option>
+                <?php foreach ($uniqueCities as $c): ?>
+                    <option value="<?php echo h($c); ?>" <?php echo $cityFilter === $c ? 'selected' : ''; ?>><?php echo h($c); ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <!-- Sort -->
         <div class="col-md-2">
@@ -96,7 +93,7 @@ layoutSidebar($user['role'], 'Browse Tournaments');
         <!-- Buttons -->
         <div class="col-12 mt-2 d-flex gap-2">
             <button class="btn btn-primary shadow-0 px-4" type="submit">Go</button>
-            <?php if ($search || $sportFilter || $dateFilter || $sortFilter !== 'asc' || $stateFilter || $cityFilter): ?>
+            <?php if ($search || $sportFilter || $dateFilter || $sortFilter !== 'asc' || $cityFilter): ?>
             <a href="<?php echo BASE_URL; ?>/dashboard/customer/browse_tournaments.php" class="btn btn-outline-secondary fw-500">Clear Filters</a>
             <?php endif; ?>
         </div>
