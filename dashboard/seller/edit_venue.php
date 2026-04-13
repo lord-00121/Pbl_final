@@ -28,6 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'city' => trim($_POST['city'] ?? ''),
         'state' => trim($_POST['state'] ?? ''),
         'pincode' => trim($_POST['pincode'] ?? ''),
+        'latitude' => trim($_POST['latitude'] ?? '') !== '' ? (float)$_POST['latitude'] : null,
+        'longitude' => trim($_POST['longitude'] ?? '') !== '' ? (float)$_POST['longitude'] : null,
         'description' => trim($_POST['description'] ?? ''),
         'price_per_slot' => (float)($_POST['price_per_slot'] ?? 0),
         'slot_duration' => '60', // Defaulted to 60 minutes
@@ -104,6 +106,8 @@ layoutSidebar('seller', 'My Venues');
         </div>
 
         <div id="venueMap" style="height: 350px; width: 100%; border-radius: 8px; border: 1px solid #ddd; z-index: 1;"></div>
+        <input type="hidden" name="latitude" id="vlat" value="<?php echo h($venue['latitude'] ?? ''); ?>">
+        <input type="hidden" name="longitude" id="vlng" value="<?php echo h($venue['longitude'] ?? ''); ?>">
       </div>
 
       <div class="col-12">
@@ -172,14 +176,16 @@ layoutSidebar('seller', 'My Venues');
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    let initialLat = 20.5937, initialLng = 78.9629, zoomLevel = 4;
+    let initialLat = document.getElementById('vlat').value ? parseFloat(document.getElementById('vlat').value) : 20.5937;
+    let initialLng = document.getElementById('vlng').value ? parseFloat(document.getElementById('vlng').value) : 78.9629;
+    let zoomLevel = document.getElementById('vlat').value ? 15 : 4;
     const map = L.map('venueMap').setView([initialLat, initialLng], zoomLevel);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
     let marker = L.marker([initialLat, initialLng], {draggable: true}).addTo(map);
 
     // Try finding the existing venue location strings if geo API returns something
     let existingQuery = document.getElementById('vloc').value;
-    if (existingQuery) {
+    if (existingQuery && !document.getElementById('vlat').value) {
         fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(existingQuery)}&limit=1`)
         .then(res => res.json())
         .then(data => {
@@ -211,6 +217,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('vcity').value = city;
                 document.getElementById('vstate').value = state;
                 document.getElementById('vpincode').value = pincode;
+                document.getElementById('vlat').value = lat;
+                document.getElementById('vlng').value = lng;
             }
         }).catch(err => console.error("Geocoding failed", err));
     }

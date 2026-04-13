@@ -63,10 +63,11 @@ class Venue {
     }
 
     public function create(array $data): int {
-        $stmt = $this->db->prepare("INSERT INTO venues (seller_id, name, sport_type, location, city, state, pincode, description, price_per_slot, slot_duration, operating_hours_start, operating_hours_end) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)");
+        $stmt = $this->db->prepare("INSERT INTO venues (seller_id, name, sport_type, location, city, state, pincode, latitude, longitude, description, price_per_slot, slot_duration, operating_hours_start, operating_hours_end) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         $stmt->execute([
             $data['seller_id'], $data['name'], $data['sport_type'], $data['location'],
             $data['city'] ?? '', $data['state'] ?? '', $data['pincode'] ?? '',
+            $data['latitude'] ?? null, $data['longitude'] ?? null,
             $data['description'], $data['price_per_slot'], $data['slot_duration'],
             $data['operating_hours_start'], $data['operating_hours_end']
         ]);
@@ -75,10 +76,11 @@ class Venue {
     }
 
     public function update(int $id, array $data, int $sellerId): void {
-        $stmt = $this->db->prepare("UPDATE venues SET name=?, sport_type=?, location=?, city=?, state=?, pincode=?, description=?, price_per_slot=?, slot_duration=?, operating_hours_start=?, operating_hours_end=? WHERE id=? AND seller_id=?");
+        $stmt = $this->db->prepare("UPDATE venues SET name=?, sport_type=?, location=?, city=?, state=?, pincode=?, latitude=?, longitude=?, description=?, price_per_slot=?, slot_duration=?, operating_hours_start=?, operating_hours_end=? WHERE id=? AND seller_id=?");
         $stmt->execute([
             $data['name'], $data['sport_type'], $data['location'],
             $data['city'] ?? '', $data['state'] ?? '', $data['pincode'] ?? '',
+            $data['latitude'] ?? null, $data['longitude'] ?? null,
             $data['description'], $data['price_per_slot'], $data['slot_duration'], $data['operating_hours_start'],
             $data['operating_hours_end'], $id, $sellerId
         ]);

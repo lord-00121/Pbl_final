@@ -98,6 +98,7 @@ layoutSidebar($user['role'], 'Browse Tournaments');
             <div>
                 <span class="d-block fw-700 text-dark" style="font-size:0.8rem;">Location</span>
                 <?php echo h($tournament['location']); ?>
+                <span id="distanceDisplay" class="ms-2 badge bg-success text-white shadow-sm" style="font-size: 0.75rem;"></span>
             </div>
         </div>
         <div class="d-flex align-items-center gap-2 text-muted fw-500">
@@ -119,9 +120,19 @@ layoutSidebar($user['role'], 'Browse Tournaments');
       </div>
       
       <?php if ($tournament['description']): ?>
-        <h5 class="fw-700 mb-2">Description & Rules</h5>
-        <div class="bg-light p-3 rounded text-muted" style="line-height:1.6;"><?php echo nl2br(h($tournament['description'])); ?></div>
+        <h5 class="fw-700 mb-2 mt-4">Description & Rules</h5>
+        <div class="bg-light p-3 rounded text-muted mb-4" style="line-height:1.6;"><?php echo nl2br(h($tournament['description'])); ?></div>
       <?php endif; ?>
+
+      <!-- Map Component -->
+      <h5 class="fw-700 mb-3 mt-4"><span class="material-icons text-primary align-middle me-2">map</span> Find Us</h5>
+      <div style="border-radius:12px; overflow:hidden; border:1px solid #eee;">
+        <?php if (!empty($tournament['latitude']) && !empty($tournament['longitude'])): ?>
+        <iframe src="https://maps.google.com/maps?q=<?php echo h($tournament['latitude']); ?>,<?php echo h($tournament['longitude']); ?>&output=embed&z=15" width="100%" height="280" style="border:0;" allowfullscreen loading="lazy"></iframe>
+        <?php else: ?>
+        <iframe src="https://maps.google.com/maps?q=<?php echo urlencode($tournament['name'] . ' ' . $tournament['location']); ?>&output=embed&z=14" width="100%" height="280" style="border:0;" allowfullscreen loading="lazy"></iframe>
+        <?php endif; ?>
+      </div>
     </div>
   </div>
 
@@ -188,5 +199,32 @@ layoutSidebar($user['role'], 'Browse Tournaments');
     </div>
   </div>
 </div>
+
+<script>
+<?php if (!empty($tournament['latitude']) && !empty($tournament['longitude'])): ?>
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        const tLat = <?php echo floatval($tournament['latitude']); ?>;
+        const tLng = <?php echo floatval($tournament['longitude']); ?>;
+        const uLat = pos.coords.latitude;
+        const uLng = pos.coords.longitude;
+        
+        const R = 6371; // km
+        const dLat = (tLat - uLat) * Math.PI / 180;
+        const dLng = (tLng - uLng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(uLat * Math.PI / 180) * Math.cos(tLat * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+        
+        const dElem = document.getElementById('distanceDisplay');
+        if (dElem) {
+            dElem.innerHTML = `<span class="material-icons align-middle" style="font-size:12px;">navigation</span> ${distance.toFixed(1)} km away`;
+        }
+    });
+}
+<?php endif; ?>
+</script>
 
 <?php layoutFooter(); ?>

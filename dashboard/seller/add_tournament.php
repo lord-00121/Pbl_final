@@ -24,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'city' => trim($_POST['city'] ?? ''),
         'state' => trim($_POST['state'] ?? ''),
         'pincode' => trim($_POST['pincode'] ?? ''),
+        'latitude' => trim($_POST['latitude'] ?? '') !== '' ? (float)$_POST['latitude'] : null,
+        'longitude' => trim($_POST['longitude'] ?? '') !== '' ? (float)$_POST['longitude'] : null,
         'description' => trim($_POST['description'] ?? ''),
         'start_date' => $_POST['start_date'] ?? '',
         'end_date' => $_POST['end_date'] ?? '',
@@ -98,7 +100,7 @@ layoutSidebar('seller', 'Tournaments');
               <select id="venueAutoFill" class="form-select border-primary" style="background:#fff;">
                   <option value="">-- Choose a venue to copy its address --</option>
                   <?php foreach($sellerVenues as $sv): ?>
-                      <option value="<?php echo h($sv['id']); ?>" data-loc="<?php echo h($sv['location']); ?>" data-city="<?php echo h($sv['city'] ?? ''); ?>" data-state="<?php echo h($sv['state'] ?? ''); ?>" data-pin="<?php echo h($sv['pincode'] ?? ''); ?>">
+                      <option value="<?php echo h($sv['id']); ?>" data-loc="<?php echo h($sv['location']); ?>" data-city="<?php echo h($sv['city'] ?? ''); ?>" data-state="<?php echo h($sv['state'] ?? ''); ?>" data-pin="<?php echo h($sv['pincode'] ?? ''); ?>" data-lat="<?php echo h($sv['latitude'] ?? ''); ?>" data-lng="<?php echo h($sv['longitude'] ?? ''); ?>">
                           <?php echo h($sv['name'] . ' - ' . $sv['location']); ?>
                       </option>
                   <?php endforeach; ?>
@@ -122,6 +124,8 @@ layoutSidebar('seller', 'Tournaments');
       <div class="col-md-4">
         <label class="form-label fw-600 small">Pincode <span class="text-danger">*</span></label>
         <input type="text" id="tpin" name="pincode" class="form-control" placeholder="e.g. 400053" required>
+        <input type="hidden" id="tlat" name="latitude">
+        <input type="hidden" id="tlng" name="longitude">
       </div>
       <div class="col-md-4">
         <label class="form-label fw-600 small">Start Date <span class="text-danger">*</span></label>
@@ -190,6 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('tcity').value = selected.getAttribute('data-city');
           document.getElementById('tstate').value = selected.getAttribute('data-state');
           document.getElementById('tpin').value = selected.getAttribute('data-pin');
+          document.getElementById('tlat').value = selected.getAttribute('data-lat');
+          document.getElementById('tlng').value = selected.getAttribute('data-lng');
       });
   }
 });

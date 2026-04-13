@@ -18,6 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $city = trim($_POST['city'] ?? '');
     $state = trim($_POST['state'] ?? '');
     $pincode = trim($_POST['pincode'] ?? '');
+    $lat = trim($_POST['latitude'] ?? '') !== '' ? (float)$_POST['latitude'] : null;
+    $lng = trim($_POST['longitude'] ?? '') !== '' ? (float)$_POST['longitude'] : null;
     $desc = trim($_POST['description'] ?? '');
     $price = (float)($_POST['price_per_slot'] ?? 0);
     $dur = '60'; // Defaulted to 60 minutes
@@ -35,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'seller_id' => $user['id'],
             'name' => $name, 'sport_type' => $sport,
             'location' => $loc, 'city' => $city, 'state' => $state, 'pincode' => $pincode,
+            'latitude' => $lat, 'longitude' => $lng,
             'description' => $desc,
             'price_per_slot' => $price, 'slot_duration' => $dur,
             'operating_hours_start' => $opStart, 'operating_hours_end' => $opEnd,
@@ -101,6 +104,8 @@ layoutSidebar('seller', 'My Venues');
         </div>
 
         <div id="venueMap" style="height: 350px; width: 100%; border-radius: 8px; border: 1px solid #ddd; z-index: 1;"></div>
+        <input type="hidden" name="latitude" id="vlat">
+        <input type="hidden" name="longitude" id="vlng">
       </div>
 
       <div class="col-12">
@@ -185,6 +190,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('vcity').value = city;
                 document.getElementById('vstate').value = state;
                 document.getElementById('vpincode').value = pincode;
+                document.getElementById('vlat').value = lat;
+                document.getElementById('vlng').value = lng;
             }
         }).catch(err => console.error("Geocoding failed", err));
     }

@@ -109,7 +109,11 @@ layoutSidebar($user['role'], 'Browse Venues');
           </div>
         </div>
       </div>
-      <div class="d-flex align-items-center gap-2 mb-2 text-muted fw-500"><span class="material-icons text-primary" style="font-size:1.2rem;">location_on</span> <?php echo h($venue['location']); ?></div>
+      <div class="d-flex align-items-center gap-2 mb-2 text-muted fw-500">
+          <span class="material-icons text-primary" style="font-size:1.2rem;">location_on</span> 
+          <?php echo h($venue['location']); ?>
+          <span id="distanceDisplay" class="ms-2 badge bg-success text-white shadow-sm" style="font-size: 0.75rem;"></span>
+      </div>
       <div class="d-flex align-items-center gap-2 mb-4 text-muted fw-500">
         <span class="material-icons text-primary" style="font-size:1.2rem;">schedule</span> Open: <?php echo date('h:i A', strtotime($venue['operating_hours_start'])); ?> – <?php echo date('h:i A', strtotime($venue['operating_hours_end'])); ?>
       </div>
@@ -120,7 +124,11 @@ layoutSidebar($user['role'], 'Browse Venues');
     <div class="card p-4 mb-4 shadow-none border">
       <h5 class="fw-700 mb-3"><span class="material-icons text-primary align-middle me-2">map</span> Find Us</h5>
       <div style="border-radius:12px; overflow:hidden; border:1px solid #eee;">
+        <?php if (!empty($venue['latitude']) && !empty($venue['longitude'])): ?>
+        <iframe src="https://maps.google.com/maps?q=<?php echo h($venue['latitude']); ?>,<?php echo h($venue['longitude']); ?>&output=embed&z=15" width="100%" height="280" style="border:0;" allowfullscreen loading="lazy"></iframe>
+        <?php else: ?>
         <iframe src="https://maps.google.com/maps?q=<?php echo urlencode($venue['name'] . ' ' . $venue['location']); ?>&output=embed&z=14" width="100%" height="280" style="border:0;" allowfullscreen loading="lazy"></iframe>
+        <?php endif; ?>
       </div>
     </div>
   </div>
@@ -228,6 +236,32 @@ const venueId = <?php echo $id; ?>;
 const opStart = '<?php echo $venue['operating_hours_start']; ?>';
 const opEnd = '<?php echo $venue['operating_hours_end']; ?>';
 const pricePerHour = <?php echo $venue['price_per_slot']; ?>;
+
+<?php if (!empty($venue['latitude']) && !empty($venue['longitude'])): ?>
+// Calculate distance to venue dynamically
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        const vLat = <?php echo floatval($venue['latitude']); ?>;
+        const vLng = <?php echo floatval($venue['longitude']); ?>;
+        const uLat = pos.coords.latitude;
+        const uLng = pos.coords.longitude;
+        
+        const R = 6371; // Earth radius in km
+        const dLat = (vLat - uLat) * Math.PI / 180;
+        const dLng = (vLng - uLng) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(uLat * Math.PI / 180) * Math.cos(vLat * Math.PI / 180) *
+                  Math.sin(dLng/2) * Math.sin(dLng/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const distance = R * c;
+        
+        const dElem = document.getElementById('distanceDisplay');
+        if (dElem) {
+            dElem.innerHTML = `<span class="material-icons align-middle" style="font-size:12px;">navigation</span> ${distance.toFixed(1)} km away`;
+        }
+    });
+}
+<?php endif; ?>
 
 let currentBooked = [];
 
