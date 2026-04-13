@@ -308,6 +308,16 @@ const opStart = '<?php echo $venue['operating_hours_start']; ?>';
 const opEnd = '<?php echo $venue['operating_hours_end']; ?>';
 const pricePerHour = <?php echo $venue['price_per_slot']; ?>;
 
+// Stability Fix: Pre-load the current bookings to avoid an immediate AJAX call
+let currentBooked = <?php 
+    $db = getPDO();
+    $today = date('Y-m-d');
+    $stmt = $db->prepare("SELECT slot_start, slot_end FROM bookings WHERE venue_id = ? AND slot_date = ? AND status != 'cancelled'");
+    $stmt->execute([$id, $today]);
+    echo json_encode($stmt->fetchAll());
+?>;
+let opHoursFetched = true;
+
 <?php if (!empty($venue['latitude']) && !empty($venue['longitude'])): ?>
 // Calculate distance to venue dynamically
 if (navigator.geolocation) {
@@ -334,7 +344,7 @@ if (navigator.geolocation) {
 }
 <?php endif; ?>
 
-let currentBooked = [];
+
 
 const dateInput = document.getElementById('slotDate');
 const durationSelect = document.getElementById('slotDuration');
@@ -342,6 +352,13 @@ const durationSelect = document.getElementById('slotDuration');
 dateInput.addEventListener('change', async function() {
   const date = this.value;
   const grid = document.getElementById('durationGrid');
+  
+  // Stability Fix: If today is selected, we already have the data!
+  if(date === '<?php echo date('Y-m-d'); ?>' && currentBooked && currentBooked.length > 0) {
+      renderDurations();
+      return;
+  }
+
   grid.innerHTML = '<div class="spinner-border spinner-border-sm text-primary"></div> Checking availability...';
   
   try {
@@ -358,6 +375,9 @@ dateInput.addEventListener('change', async function() {
       grid.innerHTML = '<span class="text-danger small">Network error or session expired. Please refresh.</span>';
   }
 });
+
+// Initial trigger
+if(dateInput.value) renderDurations();
 
 // Auto-trigger if date is pre-filled
 if(dateInput.value) dateInput.dispatchEvent(new Event('change'));
