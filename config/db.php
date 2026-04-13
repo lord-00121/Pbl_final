@@ -1,9 +1,10 @@
 <?php
 // config/db.php — Database connection (PDO)
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'sportify');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+// Reads from environment variables on Render; falls back to XAMPP defaults locally
+define('DB_HOST',    getenv('DB_HOST')    ?: 'localhost');
+define('DB_NAME',    getenv('DB_NAME')    ?: 'sportify');
+define('DB_USER',    getenv('DB_USER')    ?: 'root');
+define('DB_PASS',    getenv('DB_PASS')    ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
 function getPDO(): PDO {

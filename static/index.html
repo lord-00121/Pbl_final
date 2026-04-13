@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Document Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="blur-bg circle-1"></div>
+    <div class="blur-bg circle-2"></div>
+    <div class="blur-bg circle-3"></div>
+
+    <div class="container">
+        <header>
+            <h1><span class="gradient-text">AI</span> Document Assistant</h1>
+            <p>Upload a PDF or text file and interact with your data instantly.</p>
+        </header>
+
+        <main>
+            <section class="upload-section glass-panel">
+                <div class="upload-box" id="uploadBox">
+                    <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="upload-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    <h3>Drag & Drop your document</h3>
+                    <p>Supports .PDF and .TXT files</p>
+                    <input type="file" id="fileInput" accept=".pdf,.txt" hidden>
+                    <button class="btn primary-btn" id="browseBtn">Browse Files</button>
+                    <div id="fileInfo" class="hidden">
+                        <span id="fileName"></span>
+                        <button id="uploadBtn" class="btn success-btn">Process Document</button>
+                    </div>
+                </div>
+                <div id="uploadStatus" class="status-msg"></div>
+            </section>
+
+            <section class="chat-section glass-panel hidden" id="chatSection">
+                <div class="chat-history" id="chatHistory">
+                    <div class="message system-msg">
+                        <div class="msg-bubble">Document processed! What would you like to know?</div>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input type="text" id="questionInput" placeholder="Ask a question about your document..." autocomplete="off">
+                    <button class="btn primary-btn icon-btn" id="askBtn">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
