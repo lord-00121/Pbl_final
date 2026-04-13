@@ -236,22 +236,58 @@ layoutSidebar($user['role'], 'Browse Venues');
 .slot-chip { flex: 1 1 calc(50% - 0.5rem); padding: 8px; text-align: center; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.85rem; font-weight: 600; background: white; }
 .slot-chip:not(.booked):hover { border-color: var(--primary); background: #f0fdf4; color: var(--primary); transform: translateY(-2px); }
 .slot-chip.selected { border-color: var(--primary); background: var(--primary); color: white; border-width: 2px; }
-#zoomImg { max-width:90%; max-height:90%; border-radius:8px; box-shadow:0 0 30px rgba(0,0,0,0.5); }
+#zoomImg { max-width:100%; max-height:100%; object-fit: contain; }
 .slot-chip.booked { opacity: 0.5; background: #f1f3f5 !important; cursor: not-allowed; text-decoration: line-through; border-style: dotted !important; color: #adb5bd !important; }
+
+/* Amazon-style Theater Gallery */
+#imageZoomModal { display:none; position:fixed; z-index:9999; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; }
+.gallery-close { position:absolute; top:20px; right:20px; color:white; font-size:40px; cursor:pointer; z-index:10001; }
+.gallery-nav { position:absolute; top:50%; transform:translateY(-50%); color:white; font-size:50px; cursor:pointer; z-index:10001; background:rgba(0,0,0,0.3); border-radius:50%; width:60px; height:60px; display:flex; align-items:center; justify-content:center; border:none; }
+.gallery-nav:hover { background:rgba(255,255,255,0.2); }
+.gallery-prev { left:20px; }
+.gallery-next { right:20px; }
+.gallery-counter { position:absolute; bottom:20px; color:white; font-size:16px; font-weight:600; }
 </style>
 
-<!-- Image Zoom Modal -->
-<div id="imageZoomModal" onclick="this.style.display='none'"><img id="zoomImg" src=""></div>
+<!-- Amazon-style Theater Modal -->
+<div id="imageZoomModal">
+    <span class="gallery-close" onclick="closeGallery()">&times;</span>
+    <button class="gallery-nav gallery-prev" onclick="changeGalleryImage(-1)">&#10094;</button>
+    <img id="zoomImg" src="">
+    <button class="gallery-nav gallery-next" onclick="changeGalleryImage(1)">&#10095;</button>
+    <div class="gallery-counter" id="galleryCounter"></div>
+</div>
 
 <script>
-// Lightbox initialization function
+const venuePhotos = <?php echo json_encode(array_map(fn($p) => imgUrl($p['photo_url']), $photos)); ?>;
+let currentGalleryIndex = 0;
+
+function openGallery(index) {
+    currentGalleryIndex = index;
+    updateGallery();
+    document.getElementById('imageZoomModal').style.display = 'flex';
+}
+
+function updateGallery() {
+    document.getElementById('zoomImg').src = venuePhotos[currentGalleryIndex];
+    document.getElementById('galleryCounter').textContent = `${currentGalleryIndex + 1} / ${venuePhotos.length}`;
+}
+
+function changeGalleryImage(step) {
+    currentGalleryIndex += step;
+    if (currentGalleryIndex >= venuePhotos.length) currentGalleryIndex = 0;
+    if (currentGalleryIndex < 0) currentGalleryIndex = venuePhotos.length - 1;
+    updateGallery();
+}
+
+function closeGallery() {
+    document.getElementById('imageZoomModal').style.display = 'none';
+}
+
 function initLightbox() {
-    document.querySelectorAll('.carousel-item img').forEach(img => {
+    document.querySelectorAll('.carousel-item img').forEach((img, idx) => {
         img.style.cursor = 'zoom-in';
-        img.onclick = () => {
-            document.getElementById('zoomImg').src = img.src;
-            document.getElementById('imageZoomModal').style.display = 'flex';
-        };
+        img.onclick = () => openGallery(idx);
     });
 }
 document.addEventListener('DOMContentLoaded', initLightbox);
