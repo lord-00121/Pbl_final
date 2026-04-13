@@ -5,143 +5,158 @@ require_once __DIR__ . '/../../models/User.php';
 require_once __DIR__ . '/../../includes/layout.php';
 requireLogin('admin');
 
-$user = currentUser();
 $userModel = new User();
+$user = currentUser();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+// Handle Actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     verifyCsrf();
-    $targetId = (int)$_POST['target_id'];
+    $targetId = (int)$_POST['user_id'];
     
-    // Prevent self-suspension
-    if ($targetId !== $user['id']) {
-        if (isset($_POST['suspend'])) {
-            $userModel->updateStatus($targetId, 'suspended');
-        } elseif (isset($_POST['activate'])) {
-            $userModel->updateStatus($targetId, 'active');
-        } elseif (isset($_POST['delete'])) {
-            $userModel->delete($targetId);
-        }
+    if ($_POST['action'] === 'suspend') {
+        $userModel->setStatus($targetId, 'suspended');
+    } elseif ($_POST['action'] === 'activate') {
+        $userModel->setStatus($targetId, 'active');
+    } elseif ($_POST['action'] === 'delete' && $targetId !== $user['id']) {
+        $userModel->delete($targetId);
     }
-    header('Location: ' . BASE_URL . '/dashboard/admin/users.php?tab=' . ($_GET['tab'] ?? 'customer') . '&msg=updated');
+    header("Location: users.php?success=1");
     exit;
 }
 
-$allUsers = $userModel->getAll();
-$customers = array_filter($allUsers, fn($u) => $u['role'] === 'customer');
-$sellers = array_filter($allUsers, fn($u) => $u['role'] === 'seller');
-
-$tab = $_GET['tab'] ?? 'customer';
-$displayUsers = ($tab === 'seller') ? $sellers : $customers;
-$msg = $_GET['msg'] ?? '';
+$filters = [
+    'q'      => $_GET['q'] ?? '',
+    'role'   => $_GET['role'] ?? '',
+    'status' => $_GET['status'] ?? ''
+];
+$allUsers = $userModel->getAll($filters);
 
 layoutHead('Manage Users');
 layoutNavbar('admin', $user['name']);
 layoutSidebar('admin', 'Users');
 ?>
 
-<div class="mb-4">
-    <h3 class="fw-700 m-0">User Management</h3>
-    <p class="text-muted small">Manage account statuses, suspend bad actors, or completely entirely accounts.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-700 m-0">👥 User Directory</h3>
+        <p class="text-muted small">Manage all registered customers and sellers</p>
+    </div>
 </div>
 
-<?php if ($msg === 'updated'): ?>
-    <div class="alert alert-success py-2 small fw-600"><span class="material-icons align-middle fs-6 me-1">check_circle</span> User account updated successfully.</div>
-<?php endif; ?>
+<!-- Filters -->
+<div class="card p-3 mb-4 border-0 shadow-sm">
+    <form method="GET" class="row g-2">
+        <div class="col-md-4">
+            <input type="text" name="q" class="form-control" placeholder="Search name, email..." value="<?php echo h($filters['q']); ?>">
+        </div>
+        <div class="col-md-3">
+            <select name="role" class="form-select">
+                <option value="">All Roles</option>
+                <option value="customer" <?php echo $filters['role'] === 'customer' ? 'selected' : ''; ?>>Customer</option>
+                <option value="seller" <?php echo $filters['role'] === 'seller' ? 'selected' : ''; ?>>Seller</option>
+                <option value="admin" <?php echo $filters['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="status" class="form-select">
+                <option value="">All Statuses</option>
+                <option value="active" <?php echo $filters['status'] === 'active' ? 'selected' : ''; ?>>Active</option>
+                <option value="suspended" <?php echo $filters['status'] === 'suspended' ? 'selected' : ''; ?>>Suspended</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100 shadow-0">Filter</button>
+        </div>
+    </form>
+</div>
 
-<ul class="nav nav-tabs mb-4 px-2">
-  <li class="nav-item">
-    <a class="nav-link fw-600 <?php echo $tab === 'customer' ? 'active' : 'text-muted'; ?>" href="?tab=customer">
-        <span class="material-icons align-middle fs-6 me-1">directions_run</span> Customers (<?php echo count($customers); ?>)
-    </a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link fw-600 <?php echo $tab === 'seller' ? 'active' : 'text-muted'; ?>" href="?tab=seller">
-        <span class="material-icons align-middle fs-6 me-1">storefront</span> Sellers (<?php echo count($sellers); ?>)
-    </a>
-  </li>
-</ul>
-
-<div class="card shadow-sm border-0" style="border-radius:12px;">
+<!-- Users Table -->
+<div class="card border-0 shadow-sm overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light text-uppercase small text-muted">
+            <thead class="bg-light">
                 <tr>
-                    <th class="ps-4 fw-600">ID</th>
-                    <th class="fw-600">Name & Email</th>
-                    <?php if ($tab === 'seller'): ?><th class="fw-600">Business Name</th><?php endif; ?>
-                    <th class="fw-600">Contact / City</th>
-                    <th class="fw-600">Registration</th>
-                    <th class="fw-600">Status</th>
-                    <th class="pe-4 text-end fw-600">Actions</th>
+                    <th class="ps-4">User Info</th>
+                    <th>Role</th>
+                    <th>Contact Details</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php if (empty($displayUsers)): ?>
-                    <tr><td colspan="<?php echo $tab==='seller'?'7':'6'; ?>" class="text-center text-muted py-5">No <?php echo $tab; ?>s found on the platform.</td></tr>
-                <?php else: foreach ($displayUsers as $u): ?>
-                    <tr>
-                        <td class="ps-4 text-muted small">#<?php echo str_pad($u['id'], 4, '0', STR_PAD_LEFT); ?></td>
-                        <td>
-                            <div class="fw-700 text-dark"><?php echo h($u['name']); ?></div>
-                            <div class="small text-muted"><?php echo h($u['email']); ?></div>
-                        </td>
-                        <?php if ($tab === 'seller'): ?>
-                            <td class="small fw-600"><?php echo h($u['business_name'] ?: '—'); ?></td>
-                        <?php endif; ?>
-                        <td>
-                            <div class="small"><span class="material-icons text-muted align-middle" style="font-size:12px;">phone</span> <?php echo h($u['phone'] ?: '—'); ?></div>
-                            <div class="small"><span class="material-icons text-muted align-middle" style="font-size:12px;">location_city</span> <?php echo h($u['city'] ?: '—'); ?></div>
-                        </td>
-                        <td class="small text-muted"><?php echo date('M d, Y', strtotime($u['created_at'])); ?></td>
-                        <td>
-                            <?php if ($u['status'] === 'active'): ?>
-                                <span class="badge bg-success-light text-success fw-600 rounded-pill px-3">Active</span>
-                            <?php else: ?>
-                                <span class="badge bg-warning-light text-warning fw-600 rounded-pill px-3 darken-1">Suspended</span>
-                            <?php endif; ?>
-                        </td>
-                        <td class="pe-4 text-end">
-                            <div class="d-flex justify-content-end gap-2">
-                                <?php if ($u['status'] === 'active'): ?>
-                                    <form method="POST" style="display:inline;" onsubmit="return confirm('Suspend this user account? They will be unable to log in.')">
-                                        <?php echo csrfInput(); ?>
-                                        <input type="hidden" name="target_id" value="<?php echo $u['id']; ?>">
-                                        <input type="hidden" name="suspend" value="1">
-                                        <button type="submit" class="btn btn-sm btn-light shadow-0 text-warning" title="Suspend User">
-                                            <span class="material-icons align-middle" style="font-size:1.1rem;">gavel</span>
-                                        </button>
-                                    </form>
-                                <?php else: ?>
-                                    <form method="POST" style="display:inline;">
-                                        <?php echo csrfInput(); ?>
-                                        <input type="hidden" name="target_id" value="<?php echo $u['id']; ?>">
-                                        <input type="hidden" name="activate" value="1">
-                                        <button type="submit" class="btn btn-sm btn-light shadow-0 text-success" title="Restore User">
-                                            <span class="material-icons align-middle" style="font-size:1.1rem;">health_and_safety</span>
-                                        </button>
-                                    </form>
-                                <?php endif; ?>
-
-                                <form method="POST" style="display:inline;" onsubmit="return confirm('CRITICAL WARNING: This will permanently delete the user and all linked data (bookings, venues). Are you absolutely sure?')">
-                                    <?php echo csrfInput(); ?>
-                                    <input type="hidden" name="target_id" value="<?php echo $u['id']; ?>">
-                                    <input type="hidden" name="delete" value="1">
-                                    <button type="submit" class="btn btn-sm btn-light shadow-0 text-danger" title="Permanently Delete">
-                                        <span class="material-icons align-middle" style="font-size:1.1rem;">delete_forever</span>
-                                    </button>
-                                </form>
+                <?php foreach ($allUsers as $u): ?>
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width:40px; height:40px; font-weight:600;">
+                                <?php echo strtoupper(substr($u['name'], 0, 1)); ?>
                             </div>
-                        </td>
-                    </tr>
-                <?php endforeach; endif; ?>
+                            <div>
+                                <div class="fw-600"><?php echo h($u['name']); ?></div>
+                                <div class="text-muted small"><?php echo h($u['email']); ?></div>
+                                <div class="x-small text-muted mt-1">Joined: <?php echo date('M d, Y', strtotime($u['created_at'])); ?></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill <?php echo $u['role'] === 'admin' ? 'bg-danger' : ($u['role'] === 'seller' ? 'bg-primary' : 'bg-info'); ?>">
+                            <?php echo ucfirst($u['role']); ?>
+                        </span>
+                    </td>
+                    <td>
+                        <div class="small fw-600"><span class="material-icons fs-6 align-middle me-1">phone</span><?php echo h($u['phone'] ?: 'N/A'); ?></div>
+                        <div class="small text-muted"><span class="material-icons fs-6 align-middle me-1">location_on</span><?php echo h($u['city'] ?: 'N/A'); ?></div>
+                        <div class="x-small text-muted"><?php echo h($u['address'] ?: ''); ?></div>
+                    </td>
+                    <td>
+                        <span class="badge <?php echo $u['status'] === 'active' ? 'bg-success' : 'bg-warning text-dark'; ?> shadow-0">
+                            <?php echo ucfirst($u['status']); ?>
+                        </span>
+                    </td>
+                    <td class="text-end pe-4">
+                        <div class="dropdown">
+                            <button class="btn btn-link text-muted p-0" data-bs-toggle="dropdown"><span class="material-icons">more_vert</span></button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <?php if ($u['status'] === 'active'): ?>
+                                <li>
+                                    <form method="POST" class="d-inline">
+                                        <?php echo csrfInput(); ?>
+                                        <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                        <button type="submit" name="action" value="suspend" class="dropdown-item text-warning">
+                                            <span class="material-icons fs-6 align-middle me-2">block</span> Suspend
+                                        </button>
+                                    </form>
+                                </li>
+                                <?php else: ?>
+                                <li>
+                                    <form method="POST" class="d-inline">
+                                        <?php echo csrfInput(); ?>
+                                        <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                        <button type="submit" name="action" value="activate" class="dropdown-item text-success">
+                                            <span class="material-icons fs-6 align-middle me-2">check_circle</span> Activate
+                                        </button>
+                                    </form>
+                                </li>
+                                <?php endif; ?>
+                                
+                                <?php if ($u['id'] !== $user['id']): ?>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('Delete this user permanently?');">
+                                        <?php echo csrfInput(); ?>
+                                        <input type="hidden" name="user_id" value="<?php echo $u['id']; ?>">
+                                        <button type="submit" name="action" value="delete" class="dropdown-item text-danger">
+                                            <span class="material-icons fs-6 align-middle me-2">delete</span> Delete
+                                        </button>
+                                    </form>
+                                </li>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
 </div>
-
-<style>
-.bg-success-light { background-color: #d1e7dd; }
-.bg-warning-light { background-color: #fff3cd; color: #856404 !important; }
-</style>
-
-<?php layoutFooter(); ?>

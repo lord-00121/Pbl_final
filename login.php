@@ -148,6 +148,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="email" name="email" id="regEmail" class="form-control" required />
                     <label class="form-label" for="regEmail">Email</label>
                 </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <div class="form-outline" data-mdb-input-init>
+                            <input type="tel" name="phone" id="regPhone" class="form-control" required />
+                            <label class="form-label" for="regPhone">Phone Number</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-outline" data-mdb-input-init>
+                            <input type="text" name="city" id="regCity" class="form-control" required />
+                            <label class="form-label" for="regCity">City</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-outline mb-3" data-mdb-input-init>
+                    <input type="text" name="address" id="regAddress" class="form-control" required />
+                    <label class="form-label" for="regAddress">Full Address</label>
+                </div>
                 <div class="form-outline mb-4" data-mdb-input-init>
                     <input type="password" name="password" id="regPass" class="form-control" required />
                     <label class="form-label" for="regPass">Password (Min 8 characters)</label>

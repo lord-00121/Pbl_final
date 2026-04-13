@@ -21,11 +21,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect(BASE_URL . '/login.php?error=exists');
     }
 
+    $phone = trim($_POST['phone'] ?? '');
+    $city = trim($_POST['city'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+
     $id = $userModel->create([
         'name' => $name,
         'email' => $email,
         'password' => $password,
-        'role' => $role
+        'role' => $role,
+        'phone' => $phone,
+        'city' => $city,
+        'address' => $address
     ]);
 
     $_SESSION['user_id'] = $id;

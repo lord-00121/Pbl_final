@@ -20,13 +20,16 @@ class User {
 
     public function create(array $data): int {
         $stmt = $this->db->prepare(
-            "INSERT INTO users (name, email, password, role, status) VALUES (?, ?, ?, ?, 'active')"
+            "INSERT INTO users (name, email, password, role, status, phone, city, address) VALUES (?, ?, ?, ?, 'active', ?, ?, ?)"
         );
         $stmt->execute([
             $data['name'], 
             $data['email'],
             password_hash($data['password'], PASSWORD_BCRYPT),
-            $data['role']
+            $data['role'],
+            $data['phone'] ?? null,
+            $data['city'] ?? null,
+            $data['address'] ?? null
         ]);
         return (int)$this->db->lastInsertId();
     }
