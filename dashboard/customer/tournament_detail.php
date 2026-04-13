@@ -39,7 +39,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
             $db->prepare("UPDATE users SET phone = ? WHERE id = ? AND (phone IS NULL OR phone = '')")->execute([$phone, $user['id']]);
         }
 
-        $playerDetails = trim($_POST['player_details'] ?? '');
+        // Stability Fix: Loop through dynamic player names/ages to form a single string
+        $playerNames = $_POST['player_names'] ?? [];
+        $playerAges  = $_POST['player_ages'] ?? [];
+        $detailsArr = [];
+        for($i = 0; $i < count($playerNames); $i++) {
+            if(!empty($playerNames[$i])) {
+                $detailsArr[] = "Player " . ($i+1) . ": " . trim($playerNames[$i]) . " (Age: " . (trim($playerAges[$i]) ?: 'N/A') . ")";
+            }
+        }
+        $playerDetails = implode("\n", $detailsArr);
+
         $regId = $tournamentModel->registerCustomer($id, $user['id'], $playerDetails);
         header("Location: " . BASE_URL . "/dashboard/customer/tournament_confirm.php?id=$regId");
         exit;
@@ -204,9 +214,21 @@ layoutSidebar($user['role'], 'Browse Tournaments');
             </div>
             
             <div class="mb-4">
-                <label class="form-label small fw-600">Team / Player Details <span class="text-danger">*</span></label>
-                <textarea name="player_details" class="form-control small" rows="3" placeholder="List your team members here (Name, Age, etc.) as required by the lister." required></textarea>
-                <div class="form-text x-small">Required team size: <?php echo h($tournament['team_size']); ?> players.</div>
+                <label class="form-label small fw-700 text-uppercase letter-spacing-1 mb-3">Team / Player Roster (<?php echo (int)$tournament['team_size']; ?> Required)</label>
+                <div class="p-3 border rounded bg-light">
+                    <?php for($i = 1; $i <= (int)$tournament['team_size']; $i++): ?>
+                    <div class="row g-2 mb-3 align-items-center">
+                        <div class="col-1 text-center small text-muted"><?php echo $i; ?>.</div>
+                        <div class="col-7">
+                            <input type="text" name="player_names[]" class="form-control form-control-sm" placeholder="Player Name" required>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" name="player_ages[]" class="form-control form-control-sm" placeholder="Age" required>
+                        </div>
+                    </div>
+                    <?php endfor; ?>
+                </div>
+                <div class="form-text x-small mt-2">Please ensure all player details are accurate for verification.</div>
             </div>
 
             <div class="form-check mb-4">
