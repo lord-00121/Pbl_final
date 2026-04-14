@@ -70,8 +70,8 @@ layoutSidebar('seller', 'Manage Bookings');
                             <td>
                                 <?php if ($b['status'] === 'confirmed'): ?>
                                     <span class="badge bg-success small">Confirmed</span>
-                                <?php elseif ($b['status'] === 'pending'): ?>
-                                    <span class="badge bg-warning text-dark small">Pending</span>
+                                <?php elseif ($b['status'] === 'cancelled'): ?>
+                                    <span class="badge bg-warning text-dark small">Cancelled</span>
                                 <?php else: ?>
                                     <span class="badge bg-danger small"><?php echo ucfirst($b['status']); ?></span>
                                 <?php endif; ?>

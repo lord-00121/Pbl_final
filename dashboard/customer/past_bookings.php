@@ -13,6 +13,8 @@ $bookings = $bookingModel->getByCustomer($user['id']);
 
 // Handle review submission
 $reviewMsg = '';
+$reviewType = 'success';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
     verifyCsrf();
     $bId = (int)$_POST['booking_id'];
@@ -36,6 +38,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_review'])) {
     }
 }
 
+// Handle cancellation
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_booking'])) {
+    verifyCsrf();
+    $bId = (int)$_POST['booking_id'];
+    $res = $bookingModel->cancel($bId, $user['id']);
+    if ($res === 'success') {
+        $reviewMsg = 'Booking cancelled successfully. The slot is now available for others.';
+        $reviewType = 'warning';
+        $bookings = $bookingModel->getByCustomer($user['id']); // Refresh
+    } else {
+        $reviewMsg = $res;
+        $reviewType = 'danger';
+    }
+}
+
 layoutHead('My Bookings');
 layoutNavbar('customer', $user['name']);
 layoutSidebar('customer', 'My Bookings');
@@ -49,7 +66,7 @@ layoutSidebar('customer', 'My Bookings');
 </div>
 
 <?php if ($reviewMsg): ?>
-  <div class="alert alert-success py-2 small fw-600"><span class="material-icons align-middle fs-6 me-1">check_circle</span> <?php echo h($reviewMsg); ?></div>
+  <div class="alert alert-<?php echo $reviewType; ?> py-2 shadow-0 small fw-600"><span class="material-icons align-middle fs-6 me-1"><?php echo $reviewType === 'danger' ? 'error' : 'check_circle'; ?></span> <?php echo h($reviewMsg); ?></div>
 <?php endif; ?>
 
 <?php if (empty($bookings)): ?>
@@ -88,22 +105,38 @@ layoutSidebar('customer', 'My Bookings');
             </td>
             <td>
               <?php if($b['status'] === 'confirmed'): ?>
-                <span class="badge rounded-pill bg-success fw-600 px-3">Confirmed</span>
+                <span class="badge rounded-pill bg-success fw-600 px-3 shadow-0">Confirmed</span>
+              <?php elseif($b['status'] === 'cancelled'): ?>
+                <span class="badge rounded-pill bg-warning text-dark fw-600 px-3 shadow-0">Cancelled</span>
               <?php else: ?>
-                <span class="badge rounded-pill bg-danger fw-600 px-3">Dismissed</span>
+                <span class="badge rounded-pill bg-danger fw-600 px-3 shadow-0">Dismissed</span>
               <?php endif; ?>
             </td>
             <td class="pe-4 text-end">
+              <?php 
+                $slotDateTime = $b['slot_date'].' '.$b['slot_start'];
+                $canCancel = ($b['status'] === 'confirmed' && (strtotime($slotDateTime) - time()) > 43200); // 12h
+              ?>
+              
+              <?php if ($canCancel): ?>
+                <form method="POST" class="d-inline" onsubmit="return confirm('Cancel this booking? You can only cancel at least 12 hours before the start.')">
+                    <?php echo csrfInput(); ?>
+                    <input type="hidden" name="cancel_booking" value="1">
+                    <input type="hidden" name="booking_id" value="<?php echo $b['id']; ?>">
+                    <button type="submit" class="btn btn-outline-danger btn-sm shadow-0 fw-600 py-1">Cancel</button>
+                </form>
+              <?php endif; ?>
+
               <?php if ($b['status'] === 'confirmed' && !$b['review_id'] && strtotime($b['slot_date'].' '.$b['slot_end']) < time()): ?>
                 <button class="btn btn-warning btn-sm shadow-0 fw-600" data-mdb-modal-init data-mdb-target="#reviewModal" onclick="setReviewBooking(<?php echo $b['id']; ?>, '<?php echo addslashes(h($b['venue_name'])); ?>')">
                   Leave Review
                 </button>
               <?php elseif ($b['review_id']): ?>
                 <span class="text-success small fw-600"><span class="material-icons align-middle fs-6">task_alt</span> Reviewed</span>
-              <?php elseif ($b['status'] === 'confirmed'): ?>
-                <span class="text-muted small">Upcoming</span>
-              <?php else: ?>
-                <span class="text-muted small">—</span>
+              <?php elseif ($b['status'] === 'cancelled' || $b['status'] === 'dismissed'): ?>
+                 <span class="text-muted small">—</span>
+              <?php elseif (!$canCancel && $b['status'] === 'confirmed' && strtotime($slotDateTime) > time()): ?>
+                <span class="text-muted small" title="Cancellations allowed until 12h before start">Upcoming</span>
               <?php endif; ?>
             </td>
           </tr>

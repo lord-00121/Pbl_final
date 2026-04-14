@@ -61,4 +61,49 @@ class Booking {
     public function dismiss(int $id): void {
         $this->db->prepare("UPDATE bookings SET status = 'dismissed' WHERE id = ?")->execute([$id]);
     }
+
+    public function cancel(int $id, int $customerId): string {
+        $booking = $this->getById($id);
+        if (!$booking || $booking['customer_id'] != $customerId) {
+            return "Booking not found.";
+        }
+        if ($booking['status'] === 'cancelled') {
+            return "Booking is already cancelled.";
+        }
+        if ($booking['status'] === 'dismissed') {
+            return "Dismissed bookings cannot be cancelled.";
+        }
+
+        // 12-hour rule: Slot start date/time compared to now
+        $slotDateTime = $booking['slot_date'] . ' ' . $booking['slot_start'];
+        $slotTs = strtotime($slotDateTime);
+        $diffSeconds = $slotTs - time();
+        $diffHours = $diffSeconds / 3600;
+
+        if ($diffHours < 12) {
+            return "Cancellations must be made at least 12 hours before the slot begins.";
+        }
+
+        $this->db->beginTransaction();
+        try {
+            // Update booking status
+            $this->db->prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?")->execute([$id]);
+
+            // Deduct from revenue log by adding a negative entry
+            $stmt = $this->db->prepare("SELECT amount, seller_id FROM revenue_log WHERE booking_id = ? AND amount > 0 LIMIT 1");
+            $stmt->execute([$id]);
+            $rev = $stmt->fetch();
+            
+            if ($rev) {
+                $this->db->prepare("INSERT INTO revenue_log (seller_id, booking_id, amount) VALUES (?, ?, ?)")
+                         ->execute([$rev['seller_id'], $id, -$rev['amount']]);
+            }
+
+            $this->db->commit();
+            return "success";
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return "Err: " . $e->getMessage();
+        }
+    }
 }
